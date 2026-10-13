@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Onest:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: the page is an edit sequence. A live monitor + track lanes open it, then three stages (Ingest, Review, Plan) run down the page like markers on a timeline. Track colors (cut, voice, sfx, music, clip, grade) double as the plan's category colors. */
+/* Layout: the page is an edit sequence. A live monitor + track lanes open it; one analyzer card runs Upload → Analyze → Plan; the plan reads top to bottom in editing order. Track colors (cut, voice, sfx, music, clip, grade) double as the plan's section colors. */
 :root{
   --paper:#EEF1EC;--panel:#FBFCFA;--panel-2:#E4E8E2;--line:#D3D9D1;--line-2:#B6C0B5;
   --ink:#111618;--ink-2:#465154;--ink-3:#727E7A;
@@ -54,7 +54,6 @@ p{margin:0}
 a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
-.mono{font-family:var(--f-mono)}
 .eyebrow{display:flex;align-items:center;gap:10px;font:500 12px/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .eyebrow .dm{width:9px;height:9px;background:var(--cut);transform:rotate(45deg);border-radius:2px;flex:none}
 
@@ -69,19 +68,22 @@ button{font:inherit;color:inherit}
 @media (max-width:780px){.links{display:none}.nav .btn{margin-left:auto}}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);font:600 15px/1.2 var(--f-body);text-decoration:none;cursor:pointer;transition:transform .3s var(--ease),box-shadow .3s var(--ease),background .2s,border-color .2s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);font:600 15px/1.2 var(--f-body);text-decoration:none;cursor:pointer;transition:transform .3s var(--ease),box-shadow .3s var(--ease),background .2s,border-color .2s,opacity .2s}
 .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px var(--accent)}
 .btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
 .btn.ghost:hover{border-color:var(--ink-3);box-shadow:none}
 .btn-sm{padding:9px 14px;font-size:14px;border-radius:9px}
+.btn-lg{padding:17px 28px;font-size:17px;border-radius:12px}
 .btn svg{flex:none}
+.btn-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 
 /* hero */
 .hero{padding-block:56px 48px}
 .hero-in{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:52px;align-items:center}
 @media (max-width:1000px){.hero-in{grid-template-columns:minmax(0,1fr);gap:40px}}
-.hero h1{margin:20px 0 22px;font:900 clamp(3rem,6.4vw,5.4rem)/.9 var(--f-display);text-transform:uppercase;letter-spacing:-.005em;text-wrap:balance}
+.hero h1{margin:20px 0 22px;font:900 clamp(3rem,6.4vw,5.4rem)/.9 var(--f-display);text-transform:uppercase;letter-spacing:-.005em}
 .w-cut{color:var(--cut)}
 .w-sound{color:var(--aud)}
 .w-color{background:linear-gradient(90deg,var(--g1) 5%,var(--g2) 55%,var(--g3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -91,7 +93,7 @@ button{font:inherit;color:inherit}
 .trust li{display:flex;align-items:center;gap:8px}
 .trust li::before{content:"";width:7px;height:7px;background:var(--accent);transform:rotate(45deg);border-radius:1.5px}
 
-/* rig: monitor + timeline */
+/* rig */
 .rig{position:relative;margin:0;display:grid;gap:12px;min-width:0}
 .monitor{background:var(--monitor);border-radius:16px;padding:10px;box-shadow:var(--shadow)}
 .mon-bar{display:flex;justify-content:space-between;gap:12px;padding:2px 4px 9px;font:500 11px/1 var(--f-mono);letter-spacing:.05em;color:var(--mon-ink-2)}
@@ -108,7 +110,6 @@ button{font:inherit;color:inherit}
 .pin i::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--mon-ink);animation:ring 2.6s var(--ease) infinite}
 .pin b{font:500 10.5px/1 var(--f-mono);color:var(--mon-ink);background:var(--mon-chip);padding:4px 7px;border-radius:4px;white-space:nowrap}
 @keyframes ring{0%{transform:scale(1);opacity:.75}100%{transform:scale(2.3);opacity:0}}
-
 .tl{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;box-shadow:var(--shadow);--lx:42px;--p:.42}
 .tl-top{display:flex;justify-content:space-between;gap:10px;font:500 10.5px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
 .tl-body{position:relative}
@@ -137,196 +138,192 @@ button{font:inherit;color:inherit}
 @media (max-width:1120px){.float{display:none}}
 
 /* ticker */
-.ticker{border-block:1px solid var(--line);background:var(--panel);overflow:hidden;padding-block:16px}
+.ticker{border-block:1px solid var(--line);background:var(--panel);overflow:hidden;padding-block:16px;display:flex;align-items:center}
+.tk-label{flex:none;padding:0 18px 0 20px;font:600 11px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);border-right:1px solid var(--line);margin-right:24px;max-width:140px}
+.tk-mask{overflow:hidden;min-width:0;flex:1}
 .tk-track{display:flex;width:max-content;animation:marquee 80s linear infinite}
 .tk-track span{display:flex;align-items:center;gap:30px;padding-right:30px;font:800 24px/1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;color:var(--ink-3);white-space:nowrap}
 .tk-track span::after{content:"";width:8px;height:8px;background:var(--line-2);transform:rotate(45deg);border-radius:1.5px}
 @keyframes marquee{to{transform:translateX(-50%)}}
 
-/* stages */
+/* sections */
 .stage{padding-block:76px 8px}
 .stage-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 40px;align-items:end;margin-bottom:28px}
 .stage-head h2{margin-top:14px;font:900 clamp(2.4rem,5vw,3.6rem)/.92 var(--f-display);text-transform:uppercase}
 .stage-head p{color:var(--ink-2);max-width:34em}
 @media (max-width:820px){.stage-head{grid-template-columns:minmax(0,1fr)}}
 
-.ingest{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media (max-width:760px){.ingest{grid-template-columns:minmax(0,1fr)}}
-.drop{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;align-items:center;padding:24px;border:1.5px dashed var(--line-2);border-radius:16px;background:var(--panel);cursor:pointer;transition:border-color .25s var(--ease),background .25s var(--ease),transform .35s var(--ease)}
-.drop:hover,.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 60%,var(--panel))}
-.drop.over{transform:scale(1.01)}
-.drop .ic{grid-row:span 3;width:56px;height:56px;border-radius:13px;background:var(--panel-2);color:var(--ink);display:grid;place-items:center;transition:transform .4s var(--ease)}
-.drop:hover .ic,.drop.over .ic{transform:translateY(-3px)}
-.drop strong{font:800 24px/1.05 var(--f-display);text-transform:uppercase;letter-spacing:.01em}
-.drop .sub{color:var(--ink-2);font-size:14px}
-.drop .sub u{text-underline-offset:3px;color:var(--ink)}
-.drop .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.drop .state{grid-column:1/-1;margin-top:12px;font:500 12.5px/1.4 var(--f-mono);color:var(--ink-2);display:flex;align-items:center;gap:8px;min-width:0}
-.drop .state:empty{display:none}
-.drop .state b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;margin-top:16px;overflow:hidden}
-.panel-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:14px 20px;border-bottom:1px solid var(--line)}
-.tag{font:600 10.5px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;border-radius:6px;background:var(--panel-2);color:var(--ink-2);flex:none}
-.tag.ex{background:var(--warn-soft);color:var(--ink)}
-.tag.live{background:var(--accent-soft);color:var(--accent)}
-.fname{flex:1 1 180px;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.metas{display:flex;flex-wrap:wrap;gap:6px}
-.meta{font:500 12px/1 var(--f-mono);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
-.pbody{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
-.pv{padding:20px;border-right:1px solid var(--line);min-width:0}
-.det{padding:8px 20px 14px;min-width:0}
-@media (max-width:900px){.pbody{grid-template-columns:minmax(0,1fr)}.pv{border-right:0;border-bottom:1px solid var(--line)}}
-.player{position:relative;aspect-ratio:16/9;max-width:100%;background:var(--monitor);border-radius:10px;overflow:hidden;display:grid;place-items:center}
+/* analyzer card */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--panel-2);border-bottom:1px solid var(--line)}
+.steps li{display:flex;align-items:center;gap:10px;padding:14px 18px;font-weight:600;font-size:14.5px;color:var(--ink-3);min-width:0;transition:color .3s}
+.steps li+li{border-left:1px solid var(--line)}
+.steps b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 12px/1 var(--f-mono);border:1.5px solid var(--line-2);flex:none;transition:background .35s var(--ease),border-color .35s,color .35s}
+.steps li.on{color:var(--ink)}
+.steps li.on b{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps li.done{color:var(--ink-2)}
+.steps li.done b{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+@media (max-width:480px){.steps li{padding:12px 10px;gap:7px;font-size:13px}}
+.pane{padding:26px;animation:in .5s var(--ease) both}
+@media (max-width:480px){.pane{padding:16px}}
+.bigdrop{display:grid;justify-items:center;gap:12px;text-align:center;padding:52px 22px;border:2px dashed var(--line-2);border-radius:18px;background:var(--paper);cursor:pointer;transition:border-color .25s var(--ease),background .25s var(--ease),transform .35s var(--ease)}
+.bigdrop:hover,.bigdrop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 55%,var(--paper))}
+.bigdrop.over{transform:scale(1.01)}
+.bigdrop .ic{width:76px;height:76px;border-radius:22px;background:var(--panel);display:grid;place-items:center;box-shadow:var(--shadow);color:var(--accent);transition:transform .45s var(--ease)}
+.bigdrop:hover .ic,.bigdrop.over .ic{transform:translateY(-4px)}
+.bigdrop h3{font:900 clamp(2rem,4.4vw,2.8rem)/1 var(--f-display);text-transform:uppercase}
+.bigdrop p{color:var(--ink-2)}
+.fine{font:500 12.5px/1.4 var(--f-mono);color:var(--ink-3)}
+.err{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--bad-soft);font-size:14.5px}
+.ready{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:820px){.ready{grid-template-columns:minmax(0,1fr);gap:20px}}
+.player{position:relative;aspect-ratio:16/9;max-width:100%;background:var(--monitor);border-radius:12px;overflow:hidden;display:grid;place-items:center}
 .player video,.player img{width:100%;height:100%;object-fit:contain;display:block}
 .player .lbl{position:absolute;left:10px;top:10px;font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mon-ink);background:var(--mon-chip);padding:5px 7px;border-radius:4px}
-.player .audph{display:grid;gap:14px;justify-items:center;width:100%;padding:20px;color:var(--mon-ink-2);font:500 12px/1.3 var(--f-mono);text-align:center}
-.player audio{width:min(100%,420px)}
-.strip{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:6px;scrollbar-width:thin}
-.strip figure{margin:0;flex:none;display:grid;gap:4px}
-.strip img{height:54px;width:auto;max-width:none;border-radius:5px;display:block;animation:in .6s var(--ease) both;animation-delay:calc(var(--i,0) * 45ms)}
-.strip figcaption{font:500 10px/1 var(--f-mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
-.pal{display:flex;margin-top:10px;border-radius:7px;overflow:hidden;height:22px;border:1px solid var(--line)}
-.pal i{flex:1}
-.drow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:11px 0;border-bottom:1px solid var(--line);align-items:baseline}
-.drow:last-child{border-bottom:0}
-.drow dt{font:600 10.5px/1.5 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
-.drow dd{margin:0;min-width:0}
-.drow .v{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:600}
-.drow .n{font-size:13px;color:var(--ink-2);margin-top:2px}
-.swi{width:16px;height:16px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--edge);flex:none}
-.pace{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:160px;margin-top:4px}
-.pace span{height:6px;border-radius:2px;background:var(--panel-2)}
-.pace span.on{background:var(--accent)}
-.alert{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:14px 20px 0;padding:12px 14px;border-radius:10px;background:var(--warn-soft);font-size:14px}
-.alert.bad{background:var(--bad-soft)}
-.alert p{flex:1 1 260px;min-width:0}
-.pmap{padding:18px 20px 20px;border-top:1px solid var(--line)}
-.pm-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:12px}
-.pm-head h3{font:800 22px/1 var(--f-display);text-transform:uppercase}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font:500 11.5px/1 var(--f-mono);color:var(--ink-2)}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend i{width:10px;height:10px;border-radius:2px}
-.pm-wrap{position:relative;height:132px}
-.pm-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
-.tip{position:absolute;top:0;padding:5px 8px;border-radius:6px;background:var(--ink);color:var(--paper);font:500 11px/1.2 var(--f-mono);pointer-events:none;white-space:nowrap;transform:translateX(-50%);z-index:2}
-.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;margin-top:16px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.stats div{background:var(--panel);padding:12px 14px;min-width:0}
-.stats b{display:block;font:800 30px/1 var(--f-display);font-variant-numeric:tabular-nums}
-.stats span{display:block;margin-top:6px;font:500 10.5px/1.3 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
-@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stats div:last-child{grid-column:1/-1}}
-.prog{padding:22px 20px}
-.prog ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.prog li{display:flex;align-items:center;gap:12px;font-size:15px;color:var(--ink-3);transition:color .3s}
-.prog li i{width:18px;height:18px;border-radius:50%;border:2px solid var(--line-2);flex:none;display:grid;place-items:center}
+.ready h3{margin:12px 0 10px;font:800 30px/1.05 var(--f-display);text-transform:uppercase;overflow-wrap:anywhere}
+.metas{display:flex;flex-wrap:wrap;gap:6px}
+.meta{font:500 12px/1 var(--f-mono);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-variant-numeric:tabular-nums;color:var(--ink-2);background:var(--panel)}
+.what{list-style:none;padding:0;margin:18px 0 22px;display:grid;gap:9px;color:var(--ink-2);font-size:15px}
+.what li{display:flex;gap:10px;align-items:baseline}
+.what li::before{content:"";width:7px;height:7px;flex:none;background:var(--accent);transform:rotate(45deg) translateY(-2px);border-radius:1.5px}
+.ainote{margin-top:14px;font-size:13.5px;color:var(--ink-3);max-width:34em}
+.busy{display:grid;gap:18px;max-width:640px}
+.busy h3{font:800 28px/1.05 var(--f-display);text-transform:uppercase;overflow-wrap:anywhere}
+.prog ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.prog li{display:flex;align-items:center;gap:12px;font-size:15.5px;color:var(--ink-3);transition:color .3s}
+.prog li i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line-2);flex:none;display:grid;place-items:center}
+.prog li small{font:500 12px/1 var(--f-mono);color:var(--ink-3);margin-left:auto;font-variant-numeric:tabular-nums}
 .prog li.run{color:var(--ink)}
 .prog li.run i{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
 .prog li.done{color:var(--ink)}
 .prog li.done i{background:var(--accent);border-color:var(--accent)}
-.prog li.done i::after{content:"";width:7px;height:4px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
-.prog li.fail i{background:var(--cut);border-color:var(--cut)}
+.prog li.done i::after{content:"";width:8px;height:4px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
+.prog li.fail i{background:var(--line-2);border-color:var(--line-2)}
 .prog li.skip{text-decoration:line-through}
-.pbar{height:4px;border-radius:2px;background:var(--panel-2);margin-top:18px;overflow:hidden}
-.pbar i{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(var(--v,0));transition:transform .5s var(--ease)}
+.pbar{height:5px;border-radius:3px;background:var(--panel-2);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(var(--v,0));transition:transform .6s var(--ease)}
 @keyframes spin{to{transform:rotate(360deg)}}
+.filebar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.filebar img{width:72px;height:40px;object-fit:cover;border-radius:6px;background:var(--monitor);flex:none}
+.filebar .nm{flex:1 1 200px;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.lib .lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;padding:8px 20px 6px}
-@media (max-width:760px){.lib .lgrid{grid-template-columns:minmax(0,1fr)}}
-.cat{border-bottom:1px solid var(--line)}
-.cat summary{list-style:none;display:grid;grid-template-columns:minmax(0,150px) 42px minmax(0,1fr);gap:12px;align-items:center;padding:10px 0;cursor:pointer;font-size:14px}
-.cat summary::-webkit-details-marker{display:none}
-.cat summary b{font-weight:600}
-.cat summary .c{font:600 12px/1 var(--f-mono);color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
-.cat .bar{height:8px;border-radius:3px;background:var(--panel-2);overflow:hidden}
-.cat .bar i{display:block;height:100%;background:var(--sfx);transform-origin:left;transform:scaleX(var(--w));transition:transform .9s var(--ease)}
-.cat .files{display:grid;gap:6px;padding:2px 0 14px;max-height:320px;overflow:auto}
-.libnote{padding:4px 20px 18px;font-size:13.5px;color:var(--ink-2)}
-
-/* form */
-.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 18px}
-@media (max-width:900px){.form{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.form{grid-template-columns:minmax(0,1fr)}}
-.field{min-width:0}
-.field label{display:flex;align-items:center;gap:8px;min-height:22px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
-.field small{display:block;margin-top:6px;font-size:12.5px;color:var(--ink-3)}
-.auto{font:600 9.5px/1 var(--f-mono);font-style:normal;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:4px 6px;border-radius:4px}
-select,input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel);color:var(--ink);font:500 15px/1.3 var(--f-body);transition:border-color .2s,box-shadow .2s}
-select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
-.field.is-auto select,.field.is-auto input{border-color:var(--accent)}
-#envtxt{margin-top:8px}
-.cfield{position:relative}
-.cfield input{padding-left:42px}
-.cfield i{position:absolute;left:10px;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:5px;box-shadow:inset 0 0 0 1px var(--edge);background:repeating-conic-gradient(var(--panel-2) 0 25%,var(--panel) 0 50%) 0 0/10px 10px}
-.colors{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-.colors h3{font:800 20px/1 var(--f-display);text-transform:uppercase;margin-bottom:14px}
-.colors>p{margin-top:12px;font-size:13px;color:var(--ink-3)}
-.filled{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px;font-size:14px;color:var(--ink-2)}
-
-/* plan */
-.plan-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px}
-.plan-bar .msg{font:500 13px/1 var(--f-mono);color:var(--accent)}
-.plan{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
-@media (max-width:860px){.plan{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;min-width:0}
-.card.wide{grid-column:1/-1}
-.card h3{display:flex;align-items:center;gap:10px;margin-bottom:12px;font:800 23px/1.05 var(--f-display);text-transform:uppercase;letter-spacing:.01em}
-.card h3 .n{font:600 11px/1 var(--f-mono);color:var(--ink-3);border:1px solid var(--line);padding:5px 6px;border-radius:5px;letter-spacing:.04em}
-.card h3 .td{width:10px;height:10px;border-radius:2px;transform:rotate(45deg);flex:none;margin-left:auto}
-.card ul{margin:0;padding-left:18px}
-.card li{margin:7px 0;padding-left:2px}
-.card li::marker{color:var(--ink-3)}
-.card .note{margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--panel-2);font-size:14px;color:var(--ink-2)}
+/* result */
+.result{margin-top:34px}
+.res-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px 20px;margin-bottom:16px}
+.res-head h2{margin-top:12px;font:900 clamp(2.3rem,4.8vw,3.4rem)/.92 var(--f-display);text-transform:uppercase}
+.res-head .msg{font:500 13px/1 var(--f-mono);color:var(--accent)}
+.tag{font:600 10.5px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;border-radius:6px;background:var(--panel-2);color:var(--ink-2);flex:none}
+.tag.ex{background:var(--warn-soft);color:var(--ink)}
+.tag.live{background:var(--accent-soft);color:var(--accent)}
+.alert{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:14px;padding:13px 16px;border-radius:12px;background:var(--warn-soft);font-size:15px}
+.alert p{flex:1 1 260px;min-width:0}
+.verdict{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+@media (max-width:880px){.verdict{grid-template-columns:minmax(0,1fr)}}
+.v-media{padding:18px;border-right:1px solid var(--line);min-width:0}
+@media (max-width:880px){.v-media{border-right:0;border-bottom:1px solid var(--line)}}
+.strip{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:4px;scrollbar-width:thin}
+.strip img{height:50px;width:auto;max-width:none;border-radius:5px;display:block;flex:none;animation:in .6s var(--ease) both;animation-delay:calc(var(--i,0) * 45ms)}
+.v-text{padding:24px 26px;min-width:0;display:grid;align-content:start;gap:14px}
+@media (max-width:480px){.v-text{padding:18px}}
+.v-k{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:600 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.conf{padding:5px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
+.conf.low{background:var(--warn-soft);color:var(--ink)}
+.v-title{font:900 clamp(2.1rem,4.2vw,3.1rem)/.94 var(--f-display);text-transform:uppercase}
+.v-title em{font-style:normal;color:var(--accent)}
+.v-seen{color:var(--ink-2);font-size:16px;max-width:38em}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.fact{display:grid;gap:3px;padding:8px 12px;border-radius:10px;background:var(--panel-2);font-size:14.5px;font-weight:600;min-width:0}
+.fact span{font:600 9.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.fix{border-top:1px solid var(--line);padding-top:12px}
+.fix summary{cursor:pointer;font-weight:600;color:var(--accent);list-style:none;display:inline-flex;align-items:center;gap:8px}
+.fix summary::-webkit-details-marker{display:none}
+.fix summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .3s var(--ease)}
+.fix[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.fix-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:600px){.fix-grid{grid-template-columns:minmax(0,1fr)}}
+.fix label{display:grid;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink-2);min-width:0}
+.fix .btn-row{margin-top:12px}
+select{width:100%;padding:10px 11px;border:1px solid var(--line-2);border-radius:9px;background:var(--panel);color:var(--ink);font:500 14.5px/1.3 var(--f-body)}
+select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px;align-items:start}
+@media (max-width:880px){.sections{grid-template-columns:minmax(0,1fr)}}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 24px;min-width:0}
+@media (max-width:480px){.sec{padding:18px}}
+.sec.wide{grid-column:1/-1}
+.sections.anim .sec,.sections.anim+.end{animation:in .7s var(--ease) both;animation-delay:calc(var(--i,0) * 70ms)}
+.sec-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-h .ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--panel))}
+.sec-h .k{font:600 10.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.sec-h h3{margin-top:5px;font:800 27px/1 var(--f-display);text-transform:uppercase}
+.why{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:baseline;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--c) 9%,var(--panel-2));margin-bottom:14px;font-size:15.5px}
+.why b{font:700 10px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.do{margin:0;padding-left:20px}
+.do li{margin:8px 0;padding-left:2px}
+.do li::marker{color:var(--c)}
+.sub-h{margin:18px 0 8px;font:600 10.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .ms{display:inline-block;margin-right:6px;padding:3px 5px;border-radius:4px;background:var(--accent-soft);color:var(--accent);font:600 9.5px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;vertical-align:2px}
-.sws{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 12px}
-.sw{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border:1px solid var(--line);border-radius:8px;font:500 12px/1.2 var(--f-mono)}
-.sw i{width:24px;height:24px;border-radius:5px;box-shadow:inset 0 0 0 1px var(--edge);flex:none}
-.cuts{max-height:310px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px}
+@media (max-width:880px){.two{grid-template-columns:minmax(0,1fr)}}
+.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.mini div{background:var(--panel);padding:10px 12px;min-width:0}
+.mini b{display:block;font:800 28px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.mini span{display:block;margin-top:6px;font:500 10px/1.3 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.pm-wrap{position:relative;height:112px;margin-top:12px}
+.pm-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font:500 11px/1 var(--f-mono);color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px}
+.tip{position:absolute;top:0;padding:5px 8px;border-radius:6px;background:var(--ink);color:var(--paper);font:500 11px/1.2 var(--f-mono);pointer-events:none;white-space:nowrap;transform:translateX(-50%);z-index:2}
+.cutlist{margin-top:12px}
+.cutlist summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.cuts{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:10px}
 .cuts table{width:100%;border-collapse:collapse;font:500 13px/1.3 var(--f-mono);font-variant-numeric:tabular-nums}
 .cuts th{position:sticky;top:0;background:var(--panel-2);text-align:left;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:9px 12px}
 .cuts td{padding:8px 12px;border-top:1px solid var(--line);white-space:nowrap}
 .cuts tr.go{cursor:pointer}
 .cuts tr.go:hover td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
 .cuts .long{color:var(--cut);font-weight:600}
-.cue{padding:14px 0;border-top:1px solid var(--line)}
-.cue:first-of-type{border-top:0;padding-top:2px}
-.cue-t{font-weight:600}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip{font:500 11.5px/1 var(--f-mono);padding:5px 7px;border:1px dashed var(--line-2);border-radius:6px;color:var(--ink-2)}
-.matches{display:grid;gap:6px;margin-top:10px}
-.m{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 10px 5px 5px;border-radius:9px;background:var(--panel-2)}
-.m .nm{font:500 12.5px/1.3 var(--f-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.m .du{font:500 11.5px/1 var(--f-mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
-.play{width:32px;height:32px;border:0;border-radius:7px;background:var(--panel);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:background .2s,color .2s,transform .2s var(--ease)}
-.play:hover{transform:scale(1.06)}
-.play.on{background:var(--sfx);color:var(--sfx-ink)}
-.muted{color:var(--ink-3);font-size:14px;margin-top:6px}
-.plan.anim .card{animation:in .7s var(--ease) both;animation-delay:calc(var(--i,0) * 60ms)}
+.cprev{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:12px;overflow:hidden;background:var(--monitor) center/cover no-repeat;margin-bottom:12px}
+.cprev .cap{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);max-width:88%;padding:7px 14px;border-radius:7px;font:700 clamp(13px,1.9vw,17px)/1.25 var(--f-body);text-align:center}
+.cprev .lbl{position:absolute;left:10px;top:10px;font:600 10px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mon-ink);background:var(--mon-chip);padding:5px 7px;border-radius:4px}
+.palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.palette{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pt{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--panel);min-width:0}
+.pt i{display:block;height:54px;box-shadow:inset 0 -1px 0 var(--edge)}
+.pt div{padding:8px 10px;font-size:12.5px;line-height:1.35;color:var(--ink-2)}
+.pt code{display:block;font:600 12px/1.3 var(--f-mono);color:var(--ink);margin-bottom:2px}
+.meters{display:grid;gap:11px;margin-bottom:6px}
+.meter{display:grid;grid-template-columns:86px minmax(0,1fr) 62px;gap:12px;align-items:center;font-size:14px;font-weight:600}
+.meter .track{position:relative;height:10px;border-radius:5px;background:var(--panel-2);overflow:hidden}
+.meter .track i{position:absolute;left:0;right:0;top:0;bottom:0;border-radius:5px;background:var(--mc);transform-origin:left;transform:scaleX(var(--v));transition:transform 1.1s var(--ease)}
+.meter b{font:600 13px/1 var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.scale{display:flex;justify-content:space-between;margin:2px 74px 10px 98px;font:500 10px/1 var(--f-mono);color:var(--ink-3)}
+@media (max-width:480px){.meter{grid-template-columns:70px minmax(0,1fr) 56px;gap:8px}.scale{margin:2px 64px 10px 78px}}
+.cues{display:grid;gap:8px}
+.cue{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 12px;border-radius:12px;background:var(--panel-2)}
+.cue .n{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:600 11px/1 var(--f-mono);background:var(--panel);color:var(--sfx)}
+.cue strong{display:block;font-size:15px}
+.cue span{display:block;font-size:13.5px;color:var(--ink-2)}
+.cue em{font:600 12px/1 var(--f-mono);font-style:normal;padding:6px 8px;border-radius:6px;background:var(--sfx);color:var(--sfx-ink);white-space:nowrap}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kv div{padding:10px 12px;border-radius:10px;background:var(--panel-2);min-width:0}
+.kv span{display:block;font:600 9.5px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.kv b{display:block;font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}
+.kv.five{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:600px){.kv,.kv.five{grid-template-columns:minmax(0,1fr)}}
+.end{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
 @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* workflow */
-.flow{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;padding-top:34px}
-.flow::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--line)}
-.flow .ph{position:absolute;top:0;left:0;width:2px;height:20px;background:var(--marker);animation:sweep 7s var(--ease-io) infinite alternate}
-.flow .ph::before{content:"";position:absolute;top:-2px;left:-5px;width:12px;height:9px;background:var(--marker);clip-path:polygon(0 0,100% 0,50% 100%)}
-@keyframes sweep{from{left:0}to{left:calc(100% - 2px)}}
-.st{position:relative;min-width:0}
-.st::before{content:"";position:absolute;top:-30px;left:0;width:12px;height:12px;background:var(--cut);transform:rotate(45deg);border-radius:2px}
-.st .num{font:600 12px/1 var(--f-mono);color:var(--ink-3);letter-spacing:.08em}
-.st h3{margin:8px 0 8px;font:800 28px/1 var(--f-display);text-transform:uppercase}
-.st p{color:var(--ink-2);font-size:15px}
-@media (max-width:860px){.flow{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 22px}.flow::before,.flow .ph{display:none}.st::before{position:static;display:block;margin-bottom:12px}}
-@media (max-width:520px){.flow{grid-template-columns:minmax(0,1fr)}}
-
-/* reads */
-.reads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-@media (max-width:960px){.reads{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.reads{grid-template-columns:minmax(0,1fr)}}
+/* how */
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.how{grid-template-columns:minmax(0,1fr)}}
 .rd{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0;transition:transform .45s var(--ease),border-color .3s}
 .rd:hover{transform:translateY(-3px);border-color:var(--line-2)}
 .rd .ill{background:var(--panel-2);border-bottom:1px solid var(--line);padding:14px;aspect-ratio:280/130;max-width:100%}
 .rd .ill svg{width:100%;height:100%;display:block;overflow:visible}
 .rd .tx{padding:18px 20px 20px}
-.rd h3{font:800 24px/1 var(--f-display);text-transform:uppercase;margin-bottom:8px}
+.rd .num{font:600 12px/1 var(--f-mono);color:var(--ink-3);letter-spacing:.08em}
+.rd h3{margin:8px 0 8px;font:800 26px/1 var(--f-display);text-transform:uppercase}
 .rd p{color:var(--ink-2);font-size:15px}
 .scan{animation:scan 5s var(--ease-io) infinite alternate}
 @keyframes scan{from{transform:translateX(0)}to{transform:translateX(264px)}}
@@ -334,12 +331,12 @@ select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-
 /* privacy */
 .priv{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:36px;align-items:center;padding:40px;border-radius:22px;background:var(--monitor);color:var(--mon-ink)}
 .priv h2{font:900 clamp(2.2rem,4.4vw,3.3rem)/.95 var(--f-display);text-transform:uppercase;margin-bottom:14px}
-.priv p{color:var(--mon-ink-2);max-width:40em}
+.priv p{color:var(--mon-ink-2);max-width:42em}
 .priv svg{width:100%;height:auto;max-width:220px}
 @media (max-width:700px){.priv{grid-template-columns:minmax(0,1fr);padding:28px}.priv svg{max-width:160px}}
 
 /* faq */
-.faq{display:grid;gap:0;border-top:1px solid var(--line);max-width:860px}
+.faq{display:grid;border-top:1px solid var(--line);max-width:860px}
 .faq details{border-bottom:1px solid var(--line)}
 .faq summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 2px;cursor:pointer;font-weight:600;font-size:17px}
 .faq summary::-webkit-details-marker{display:none}
@@ -350,10 +347,9 @@ select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-
 footer{margin-top:80px;border-top:1px solid var(--line);padding-block:28px 48px;color:var(--ink-3);font-size:14px}
 footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 30px}
 footer p{max-width:58ch}
-
+footer .mono{font-family:var(--f-mono)}
 .rv{transition:transform 1s var(--ease)}
 .rv.pre{transform:translateY(30px)}
-
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   html{scroll-behavior:auto}
@@ -369,27 +365,24 @@ footer p{max-width:58ch}
       <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 5.2 19.2 16H12.8Z" style="fill:var(--cut)"/><path d="M12.8 16h6.4L16 26.8Z" fill="currentColor"/><circle cx="16" cy="16" r="1.6" style="fill:var(--paper)"/></svg>
       CutCompass
     </a>
-    <nav class="links" aria-label="Sections">
-      <a href="#analyzer">Analyzer</a><a href="#workflow">Workflow</a><a href="#reads">What it reads</a><a href="#faq">FAQ</a>
-    </nav>
-    <a class="btn btn-sm" href="#analyzer">Upload footage</a>
+    <nav class="links" aria-label="Sections"><a href="#analyze">Analyzer</a><a href="#how">How it works</a><a href="#faq">FAQ</a></nav>
+    <a class="btn btn-sm" href="#analyze">Analyze a video</a>
   </div>
 </header>
 
 <main id="top">
 <section class="hero">
   <div class="wrap hero-in">
-    <div class="hero-copy">
-      <p class="eyebrow"><span class="dm"></span>Pre-edit planner for talking-head video</p>
+    <div>
+      <p class="eyebrow"><span class="dm"></span>Edit planner for raw footage</p>
       <h1>Know every <span class="w-cut">cut,</span> <span class="w-sound">sound</span> and <span class="w-color">color</span> before you edit.</h1>
-      <p class="lede">Drop in your raw footage. CutCompass finds every pause worth cutting, reads the light and colors in your frames, and picks sounds from your own SFX library. You get a full edit plan before you open your editor.</p>
+      <p class="lede">Upload a raw clip and press Analyze. CutCompass watches a few moments of it, works out what kind of video it is, and tells you which cuts, colors, sounds and SFX to use, with the reason for each.</p>
       <div class="cta-row">
-        <a class="btn" href="#analyzer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.5 6 8 2.5 11.5 6M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload footage</a>
-        <a class="btn ghost" href="#plan">See an example plan</a>
+        <a class="btn" href="#analyze"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.5 6 8 2.5 11.5 6M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Analyze a video</a>
+        <a class="btn ghost" href="#result">See an example plan</a>
       </div>
-      <ul class="trust"><li>Runs in your browser</li><li>Nothing leaves your computer</li><li>No sign-up</li></ul>
+      <ul class="trust"><li>One upload, one click</li><li>Your video stays on your computer</li><li>No sign-up</li></ul>
     </div>
-
     <figure class="rig" aria-label="Animated preview: a talking-head clip on a monitor above an edit timeline with cut markers, voice waveform, sound effects and music">
       <div class="monitor">
         <div class="mon-bar"><span class="rec">A001_C004.MP4</span><b id="tc">00:00:00:00</b></div>
@@ -418,121 +411,75 @@ footer p{max-width:58ch}
   </div>
 </section>
 
-<div class="ticker" aria-hidden="true"><div class="tk-track" id="ticker"></div></div>
+<div class="ticker" aria-hidden="true"><span class="tk-label">Knows 23 video types</span><div class="tk-mask"><div class="tk-track" id="ticker"></div></div></div>
 
-<!-- STAGE 01 -->
-<section class="stage" id="analyzer">
+<section class="stage" id="analyze">
   <div class="wrap">
     <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>Stage 01 · Ingest</p><h2>Upload your footage</h2></div>
-      <p>Drop a video or audio file. Add your SFX folder too, and the plan will name the exact files to use. Your browser does the analysis on your own computer.</p>
+      <div><p class="eyebrow"><span class="dm"></span>Analyzer</p><h2>Analyze your footage</h2></div>
+      <p>Upload your raw clip, press Analyze, and read your plan. It takes about half a minute for most clips.</p>
     </div>
+    <div class="tool">
+      <ol class="steps" id="steps"><li class="on"><b>1</b><span>Upload</span></li><li><b>2</b><span>Analyze</span></li><li><b>3</b><span>Your plan</span></li></ol>
 
-    <div class="ingest">
-      <div class="drop" id="dropFoot" role="button" tabindex="0" aria-label="Upload footage: choose a video or audio file">
-        <span class="ic"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.5" y="5" width="13" height="14" rx="2.5"/><path d="m15.5 10 5.5-3v10l-5.5-3"/><path d="M6 9h6M6 12h4" stroke-linecap="round"/></svg></span>
-        <strong>Drop raw footage</strong>
-        <span class="sub">or <u>browse files</u> · MP4, MOV, WebM, MP3, WAV, M4A</span>
-        <span class="sub">Frames, light, colors, pauses, pace and loudness</span>
-        <div class="state" id="footState"></div>
-        <input type="file" id="fFoot" accept="video/*,audio/*,.mov,.mkv,.m4a,.wav,.mp3" hidden>
+      <div class="pane" id="paneDrop">
+        <div class="bigdrop" id="drop" role="button" tabindex="0" aria-label="Choose a video file to analyze">
+          <span class="ic"><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3.5"/></svg></span>
+          <h3>Drop your raw footage here</h3>
+          <p>or click to choose a video from your computer</p>
+          <span class="btn">Choose video</span>
+          <span class="fine">MP4 · MOV · WebM · the video never leaves your computer</span>
+        </div>
+        <p class="err" id="dropErr" hidden></p>
+        <input type="file" id="fFoot" accept="video/*,.mov,.mkv,.m4v" hidden>
       </div>
-      <div class="drop" id="dropSfx" role="button" tabindex="0" aria-label="Add your SFX library: choose a folder or audio files">
-        <span class="ic"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 7.5a2 2 0 0 1 2-2h4.2l2 2.2h8.8a2 2 0 0 1 2 2v8.3a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z"/><path d="M8 15v-2M11 17v-6M14 16v-4M17 15v-2"/></svg></span>
-        <strong>Add your SFX library</strong>
-        <span class="sub">Drop a whole folder, or pick files. WAV, MP3, AIFF, OGG</span>
-        <span class="row"><button class="btn ghost btn-sm" type="button" id="bDir">Choose folder</button><button class="btn ghost btn-sm" type="button" id="bFiles">Choose files</button></span>
-        <div class="state" id="sfxState"></div>
-        <input type="file" id="fDir" webkitdirectory directory multiple hidden>
-        <input type="file" id="fSfx" accept="audio/*,.wav,.mp3,.aif,.aiff,.ogg,.m4a,.flac" multiple hidden>
+
+      <div class="pane" id="paneReady" hidden>
+        <div class="ready">
+          <div class="player" id="readyPlayer"></div>
+          <div>
+            <p class="eyebrow"><span class="dm"></span>Ready to analyze</p>
+            <h3 id="readyName"></h3>
+            <div class="metas" id="readyMeta"></div>
+            <ul class="what"><li>Looks at 6 moments to tell what kind of video it is</li><li>Measures pauses, light, colors and background noise</li><li>Writes your cuts, colors, sound and SFX plan</li></ul>
+            <div class="btn-row"><button class="btn btn-lg" type="button" id="go"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.6v10.8c0 .6.6.9 1.1.6l8.2-5.4c.4-.3.4-.9 0-1.2L5.6 2c-.5-.3-1.1 0-1.1.6z" fill="currentColor"/></svg>Analyze my video</button><button class="btn ghost" type="button" data-act="another">Choose another</button></div>
+            <p class="ainote" id="aiNote"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" id="paneBusy" hidden>
+        <div class="busy">
+          <h3 id="busyName">Analyzing</h3>
+          <div class="prog"><ol id="progList"></ol></div>
+          <div class="pbar"><i id="pb"></i></div>
+          <div class="btn-row"><button class="btn ghost btn-sm" type="button" id="stop" hidden>Stop and use measurements only</button></div>
+        </div>
+      </div>
+
+      <div class="pane" id="paneDone" hidden>
+        <div class="filebar"><img id="doneThumb" alt=""><span class="nm" id="doneName"></span><span class="metas" id="doneMeta"></span><button class="btn ghost btn-sm" type="button" data-act="another">Analyze another video</button></div>
       </div>
     </div>
-    <input type="file" id="fAud" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac" hidden>
 
-    <div class="panel" id="analysis" aria-live="polite"></div>
-    <div class="panel lib" id="libPanel" hidden></div>
+    <div class="result" id="result" aria-live="polite"></div>
   </div>
 </section>
 
-<!-- STAGE 02 -->
-<section class="stage" id="review">
+<section class="stage" id="how">
   <div class="wrap">
     <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>Stage 02 · Review</p><h2>Check the details</h2></div>
-      <p>Detected values are filled in and marked. Pick what only you know: the video type, the mood and the music you want.</p>
+      <div><p class="eyebrow"><span class="dm"></span>How it works</p><h2>Upload, analyze, edit</h2></div>
+      <p>Every suggestion comes with its reason, so you learn why a cut, color or sound fits your video.</p>
     </div>
-    <p class="filled" id="filled"></p>
-    <div class="form">
-      <div class="field" data-f="theme"><label for="theme">Video type</label><select id="theme"><option value="edu">Education / Lecture</option><option value="tut">Tutorial / How-to</option><option value="biz">Business / Product</option><option value="ad">Ad / Promo / Sales</option><option value="test">Testimonial / Customer review</option><option value="rev">Review</option><option value="tech">Tech / Gadget</option><option value="fash">Fashion / Brand</option><option value="beauty">Beauty / Makeup</option><option value="food">Food / Cooking</option><option value="fit">Health / Fitness</option><option value="travel">Travel</option><option value="house">Real estate / Property tour</option><option value="vlog">Vlog / Lifestyle</option><option value="story">Storytelling / Personal story</option><option value="moti">Motivational</option><option value="career">Career / Job advice</option><option value="int">Interview / Podcast</option><option value="news">News / Explainer</option><option value="event">Event / Announcement</option><option value="aware">Awareness / Charity</option><option value="comedy">Comedy / Skit</option><option value="rel">Islamic / Religious</option></select></div>
-      <div class="field" data-f="mood"><label for="mood">Mood</label><select id="mood"><option value="calm">Calm</option><option value="energy">Energetic</option><option value="serious">Serious</option><option value="emo">Emotional</option><option value="fun">Fun</option><option value="lux">Luxury / Elegant</option><option value="dram">Dramatic / Cinematic</option><option value="insp">Inspiring / Uplifting</option></select></div>
-      <div class="field" data-f="env"><label for="env">Location</label><select id="env"><option value="home">Home / bedroom</option><option value="office">Office</option><option value="studio">Studio</option><option value="out">Outdoor</option><option value="cafe">Cafe / street</option><option value="kitchen">Kitchen</option><option value="car">Inside a car</option><option value="class">Classroom / Hall</option><option value="shop">Workshop / Factory</option><option value="green">Green screen</option><option value="custom">Other (type your own)</option></select><input id="envtxt" type="text" placeholder="e.g. rooftop, fabric showroom, near a mosque" hidden></div>
-      <div class="field" data-f="light"><label for="light">Lighting <em class="auto" hidden>Detected</em></label><select id="light"><option value="bright">Good, bright</option><option value="dim">Dim / low light</option><option value="win">Window light</option><option value="mixed">Mixed (warm + cool)</option><option value="golden">Golden hour / sunset</option><option value="ring">Ring light</option><option value="over">Overcast / cloudy outdoor</option><option value="night">Night / practical lights</option></select></div>
-      <div class="field" data-f="plat"><label for="plat">Platform <em class="auto" hidden>Detected</em></label><select id="plat"><option value="reel">Reel / Short (9:16)</option><option value="yt">YouTube (16:9)</option><option value="fb">Facebook (4:5)</option><option value="shorts">YouTube Shorts (9:16)</option><option value="tiktok">TikTok (9:16)</option><option value="story">Story (9:16)</option><option value="li">LinkedIn (1:1 / 4:5)</option></select></div>
-      <div class="field" data-f="len"><label for="len">Raw length <em class="auto" hidden>Detected</em></label><select id="len"><option value="s">Under 1 min</option><option value="m">1 to 5 min</option><option value="l">5 to 15 min</option><option value="xl">Over 15 min</option></select></div>
-      <div class="field" data-f="pace"><label for="pace">Speaking pace <em class="auto" hidden>Detected</em></label><select id="pace"><option value="slow">Slow (lots of pauses)</option><option value="norm">Normal (everyday pace)</option><option value="fast">Fast (barely pauses)</option></select><small>Decides how tight the cuts should be.</small></div>
-      <div class="field" data-f="cap"><label for="cap">Caption language</label><select id="cap"><option value="bn">Bangla</option><option value="en">English</option><option value="both">Bangla + English</option></select></div>
-      <div class="field" data-f="mus"><label for="mus">Music</label><select id="mus"><option value="auto">Suggest for me</option><option value="inst">Instrumental only</option><option value="vocal">Vocal-only (no instruments)</option><option value="none">No music</option></select></div>
-    </div>
-    <div class="colors">
-      <h3>Colors</h3>
-      <div class="form">
-        <div class="field" data-f="cBrand"><label for="cBrand">Brand color</label><div class="cfield"><i id="pv-cBrand"></i><input id="cBrand" type="text" placeholder="e.g. #7F1D1D or maroon" autocomplete="off"></div></div>
-        <div class="field" data-f="cBg"><label for="cBg">Background <em class="auto" hidden>Sampled</em></label><div class="cfield"><i id="pv-cBg"></i><input id="cBg" type="text" placeholder="e.g. white wall, #F4ECE1" autocomplete="off"></div></div>
-        <div class="field" data-f="cDress"><label for="cDress">Speaker's outfit <em class="auto" hidden>Sampled</em></label><div class="cfield"><i id="pv-cDress"></i><input id="cDress" type="text" placeholder="e.g. black, navy, #0F172A" autocomplete="off"></div></div>
-      </div>
-      <p>Use a hex code or an English color name to get swatches and contrast numbers. Background and outfit are sampled from your frames when you upload a video.</p>
+    <div class="how">
+      <article class="rd rv"><div class="ill" data-ill="format"></div><div class="tx"><span class="num">01</span><h3>Upload</h3><p>Drop your raw clip. CutCompass reads its length, size and shape to pick the right platform and structure.</p></div></article>
+      <article class="rd rv"><div class="ill" data-ill="color"></div><div class="tx"><span class="num">02</span><h3>Analyze</h3><p>Claude looks at 6 snapshots to name the video type and setting. Your browser measures pauses, light, colors and noise.</p></div></article>
+      <article class="rd rv"><div class="ill" data-ill="plan"></div><div class="tx"><span class="num">03</span><h3>Get your plan</h3><p>Cuts, a color combination, sound levels for indoor or outdoor, and SFX ideas, each with the reason it fits.</p></div></article>
     </div>
   </div>
 </section>
 
-<!-- STAGE 03 -->
-<section class="stage" id="plan">
-  <div class="wrap">
-    <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>Stage 03 · Plan</p><h2>Your edit plan</h2></div>
-      <p>Cuts, sound, color and export settings, in the order you'll work. Lines marked <span class="ms">Measured</span> come from your file. It updates as you change the details.</p>
-    </div>
-    <div class="plan-bar"><button class="btn" type="button" id="copyPlan"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>Copy plan</button><span class="msg" id="planMsg" role="status"></span></div>
-    <div class="plan" id="planCards"></div>
-  </div>
-</section>
-
-<!-- WORKFLOW -->
-<section class="stage" id="workflow">
-  <div class="wrap">
-    <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>Workflow</p><h2>From raw clip to edit plan</h2></div>
-      <p>Four steps, about a minute for a typical 5-minute clip. The slow part is your browser reading the file.</p>
-    </div>
-    <div class="flow">
-      <span class="ph" aria-hidden="true"></span>
-      <div class="st rv" style="--d:0"><span class="num">01</span><h3>Ingest</h3><p>Drop the raw clip and, if you like, your SFX folder. Files stay on your computer.</p></div>
-      <div class="st rv" style="--d:1"><span class="num">02</span><h3>Analyze</h3><p>CutCompass samples 10 frames and reads the full audio track for pauses, pace, noise and level.</p></div>
-      <div class="st rv" style="--d:2"><span class="num">03</span><h3>Review</h3><p>Detected settings fill the form and are marked. Add the video type and mood, and fix anything it misread.</p></div>
-      <div class="st rv" style="--d:3"><span class="num">04</span><h3>Edit</h3><p>Follow the plan in Premiere Pro, Resolve, Final Cut or CapCut. Click any pause in the cut list to jump to it.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- READS -->
-<section class="stage" id="reads">
-  <div class="wrap">
-    <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>What it reads</p><h2>Six things it measures</h2></div>
-      <p>Every number in the plan comes from one of these readings, or from the details you pick in the form.</p>
-    </div>
-    <div class="reads">
-      <article class="rd rv"><div class="ill" data-ill="pause"></div><div class="tx"><h3>Pause map</h3><p>Measures loudness every 20 ms against the clip's own noise floor and lists every silence over half a second with its timecode.</p></div></article>
-      <article class="rd rv"><div class="ill" data-ill="color"></div><div class="tx"><h3>Frame colors</h3><p>Samples the wall behind the speaker and the outfit in front, then checks caption contrast against both.</p></div></article>
-      <article class="rd rv"><div class="ill" data-ill="light"></div><div class="tx"><h3>Light and exposure</h3><p>Reads brightness, contrast, clipped highlights and color cast to suggest exposure and white-balance fixes.</p></div></article>
-      <article class="rd rv"><div class="ill" data-ill="pace"></div><div class="tx"><h3>Speaking pace</h3><p>Counts syllable peaks per second of speech and the share of pauses to tell slow, normal and fast talkers apart.</p></div></article>
-      <article class="rd rv"><div class="ill" data-ill="format"></div><div class="tx"><h3>Format</h3><p>Reads resolution, aspect ratio and length to choose the platform preset, caption safe zones and structure.</p></div></article>
-      <article class="rd rv"><div class="ill" data-ill="sfx"></div><div class="tx"><h3>SFX matching</h3><p>Sorts your library by file and folder names, then picks files for each sound cue in the plan, with a play button.</p></div></article>
-    </div>
-  </div>
-</section>
-
-<!-- PRIVACY -->
 <section class="stage">
   <div class="wrap">
     <div class="priv rv">
@@ -546,25 +493,22 @@ footer p{max-width:58ch}
         <rect x="95" y="110" width="30" height="4" rx="2" style="fill:var(--accent)"/>
       </svg>
       <div>
-        <h2>Your footage never leaves your computer</h2>
-        <p>CutCompass uses your browser's own video and audio decoders. Nothing is uploaded or stored, so it's safe to use with unreleased client footage. Close the tab and every trace of the file is gone.</p>
+        <h2>Your video stays on your computer</h2>
+        <p>Your browser decodes and measures the file itself. To recognize the video type, CutCompass sends Claude only 6 small still frames and the measurements, never the video or its sound. Close the tab and nothing is kept.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
 <section class="stage" id="faq">
   <div class="wrap">
-    <div class="stage-head">
-      <div><p class="eyebrow"><span class="dm"></span>FAQ</p><h2>Questions editors ask</h2></div>
-    </div>
+    <div class="stage-head"><div><p class="eyebrow"><span class="dm"></span>FAQ</p><h2>Questions editors ask</h2></div></div>
     <div class="faq">
-      <details><summary>Which files work?</summary><p>MP4 (H.264 with AAC audio), WebM and most MOV files work in Chrome and Edge. Some iPhone HEVC clips don't decode in every browser. If frames don't load, export a quick H.264 proxy, or drop an MP3 or WAV of the audio to still get the pause map.</p></details>
-      <details><summary>How accurate is the pause detection?</summary><p>It measures loudness every 20 ms and compares it with the clip's own noise floor, so it adapts to quiet studios and noisy rooms. It works best on a clean voice. Music or crowd noise under the voice makes pauses harder to find, and the tool tells you when that happens.</p></details>
-      <details><summary>Why didn't one of my SFX files match?</summary><p>Matching reads file and folder names. "USFX - Stomp - 4.wav" is sorted as an impact, but "ui-sounds-pack-2-sound-2.mp3" can't be. Rename unclear files with a word like whoosh, click, riser, impact or ding and add the folder again.</p></details>
-      <details><summary>Is there a file size limit?</summary><p>Frame sampling works on any size. Audio analysis reads the whole file into memory, so it's limited to 900 MB. For longer recordings, export the audio as MP3 or WAV and add it with the "Add audio file" button.</p></details>
-      <details><summary>Does it edit the video for me?</summary><p>No. It plans the edit and gives you a cut list with timecodes. You make the cuts in Premiere Pro, DaVinci Resolve, Final Cut Pro or CapCut.</p></details>
+      <details><summary>What does Analyze actually do?</summary><p>Your browser takes 10 snapshots and reads the whole sound track to measure pauses, speaking pace, background noise, voice level, brightness and colors. Then Claude looks at 6 of the snapshots with those numbers and writes the plan: the video type, cuts, a color combination, sound levels and SFX ideas.</p></details>
+      <details><summary>Why does it ask me to allow Claude?</summary><p>Recognizing the video type uses Claude on your own Claude account, so claude.ai asks once before the first analysis. If you say no, you still get a plan built from the measurements, and you pick the video type yourself.</p></details>
+      <details><summary>It got the video type wrong. What now?</summary><p>Open "Not right? Change it" under the result, pick the right type, location and mood, and press Update plan. The plan is rewritten for your choice.</p></details>
+      <details><summary>Which files work?</summary><p>MP4 (H.264 with AAC sound), WebM and most MOV files work in Chrome and Edge. Some iPhone HEVC clips don't decode in every browser. If that happens, export a quick H.264 MP4 and drop that instead.</p></details>
+      <details><summary>Does it edit the video for me?</summary><p>No. It plans the edit and lists every pause with its timecode. You make the cuts in Premiere Pro, DaVinci Resolve, Final Cut Pro or CapCut.</p></details>
     </div>
   </div>
 </section>
@@ -572,8 +516,8 @@ footer p{max-width:58ch}
 
 <footer>
   <div class="wrap">
-    <p>CutCompass combines measurements from your file with rule-based editing guidance. Treat the plan as a strong starting point and trust your eyes and ears in the final edit.</p>
-    <p class="mono">CutCompass · v2</p>
+    <p>CutCompass combines measurements from your file with an editor's judgment. Treat the plan as a strong starting point and trust your eyes and ears in the final edit.</p>
+    <p class="mono">CutCompass · v3</p>
   </div>
 </footer>
 
@@ -585,99 +529,66 @@ const RM=matchMedia("(prefers-reduced-motion: reduce)");
 const MAXA=900*1024*1024;
 
 /* ---------------- editing rules ---------------- */
+const CATS=[["edu","Education / Lecture"],["tut","Tutorial / How-to"],["biz","Business / Product"],["ad","Ad / Promo / Sales"],["test","Testimonial / Customer review"],["rev","Review"],["tech","Tech / Gadget"],["fash","Fashion / Brand"],["beauty","Beauty / Makeup"],["food","Food / Cooking"],["fit","Health / Fitness"],["travel","Travel"],["house","Real estate / Property tour"],["vlog","Vlog / Lifestyle"],["story","Storytelling / Personal story"],["moti","Motivational"],["career","Career / Job advice"],["int","Interview / Podcast"],["news","News / Explainer"],["event","Event / Announcement"],["aware","Awareness / Charity"],["comedy","Comedy / Skit"],["rel","Islamic / Religious"]];
+const LOCS=[["home","Home / bedroom","indoor"],["office","Office","indoor"],["studio","Studio","indoor"],["kitchen","Kitchen","indoor"],["class","Classroom / Hall","indoor"],["shop","Workshop / Factory","indoor"],["car","Inside a car","indoor"],["green","Green screen","indoor"],["out","Outdoor","outdoor"],["cafe","Cafe / street","outdoor"]];
+const LIGHTS=[["bright","Good, bright light"],["dim","Dim / low light"],["win","Window light"],["mixed","Mixed warm + cool light"],["golden","Golden hour"],["ring","Ring light"],["over","Overcast daylight"],["night","Night / practical lights"]];
+const MOODS=[["calm","Calm"],["energy","Energetic"],["serious","Serious"],["emo","Emotional"],["fun","Fun"],["lux","Luxury / Elegant"],["dram","Dramatic / Cinematic"],["insp","Inspiring / Uplifting"]];
+const LBL=a=>Object.fromEntries(a.map(x=>[x[0],x[1]]));
+const CATL=LBL(CATS),LOCL=LBL(LOCS),LIGHTL=LBL(LIGHTS),MOODL=LBL(MOODS),LOCSET=Object.fromEntries(LOCS.map(x=>[x[0],x[2]]));
 const MOOD={
-calm:{music:"Lo-fi / soft ambient piano, 70-90 BPM",mdb:"-24",asl:"4-6 sec",tr:"Cut + soft cross-dissolve (8-12 frames)",grade:["Temperature: warm, 5300-5600K","Contrast: low-medium, shadows slightly lifted","Saturation: -5","Look: soft, natural, light film grain"],hue:"#d9a066"},
-energy:{music:"Upbeat pop / electronic, 110-128 BPM",mdb:"-20",asl:"2-3 sec",tr:"Hard jump cut + punch-in, cut on the beat",grade:["Temperature: neutral, 5600K","Contrast: high (+15), deep blacks","Saturation: +10 (keep skin tone safe)","Look: crisp, light teal-orange"],hue:"#f97316"},
-serious:{music:"Cinematic underscore / low drone, 60-80 BPM",mdb:"-26",asl:"5-8 sec",tr:"Clean cut, no fancy transitions",grade:["Temperature: neutral-cool, 5000-5200K","Contrast: high, deep shadows","Saturation: -15","Look: desaturated, moody"],hue:"#475569"},
-emo:{music:"Piano + strings, 60-75 BPM",mdb:"-22",asl:"5-7 sec",tr:"Slow cross-dissolve, dip-to-black on the emotional moment",grade:["Temperature: warm, 5500K","Contrast: low, soft highlights","Saturation: -8","Look: soft glow, light vignette"],hue:"#b45309"},
-fun:{music:"Ukulele / bouncy pop, 100-120 BPM",mdb:"-20",asl:"2-4 sec",tr:"Jump cut + zoom bump + whoosh",grade:["Temperature: neutral-warm, 5700K","Contrast: medium","Saturation: +15","Look: bright, colorful, clean"],hue:"#eab308"},
-lux:{music:"Soft jazz / minimal ambient pads, 70-90 BPM",mdb:"-25",asl:"4-6 sec",tr:"Slow dissolves, slow push-ins",grade:["Temperature: warm neutral, 5400K","Contrast: medium-high, rich blacks","Saturation: -5 with warm highlights","Look: elegant, soft highlight roll-off, subtle gold tint"],hue:"#c9a24b"},
-dram:{music:"Cinematic percussion + strings, 80-100 BPM",mdb:"-22",asl:"3-6 sec",tr:"Hard cuts with dips to black, slow zoom-ins",grade:["Temperature: cool shadows, warm highlights","Contrast: high, deep blacks","Saturation: -10","Look: teal-orange cinematic"],hue:"#0e7490"},
-insp:{music:"Uplifting acoustic / light orchestral, 90-110 BPM",mdb:"-22",asl:"3-5 sec",tr:"Cuts with gentle zoom, light dissolves on key lines",grade:["Temperature: warm, 5600-5800K","Contrast: medium","Saturation: +5","Look: bright, hopeful, clean highlights"],hue:"#f59e0b"}};
-
-/* foley cues: [text, sfx categories, preferred filename words] */
-const C=(t,c,h)=>[t,c||[],h||null];
+calm:{music:"Lo-fi or soft ambient piano",bpm:"70-90",mdb:-24,asl:"4-6 sec",tr:"Cut + soft cross-dissolve (8-12 frames)",grade:["Temperature: warm, 5300-5600K","Contrast: low-medium, shadows slightly lifted","Saturation: -5","Look: soft, natural, light film grain"]},
+energy:{music:"Upbeat pop or electronic",bpm:"110-128",mdb:-20,asl:"2-3 sec",tr:"Hard jump cut + punch-in, cut on the beat",grade:["Temperature: neutral, 5600K","Contrast: high (+15), deep blacks","Saturation: +10 (keep skin tone safe)","Look: crisp, light teal-orange"]},
+serious:{music:"Cinematic underscore or low drone",bpm:"60-80",mdb:-26,asl:"5-8 sec",tr:"Clean cut, no fancy transitions",grade:["Temperature: neutral-cool, 5000-5200K","Contrast: high, deep shadows","Saturation: -15","Look: desaturated, moody"]},
+emo:{music:"Piano + strings",bpm:"60-75",mdb:-22,asl:"5-7 sec",tr:"Slow cross-dissolve, dip-to-black on the emotional moment",grade:["Temperature: warm, 5500K","Contrast: low, soft highlights","Saturation: -8","Look: soft glow, light vignette"]},
+fun:{music:"Ukulele or bouncy pop",bpm:"100-120",mdb:-20,asl:"2-4 sec",tr:"Jump cut + zoom bump + whoosh",grade:["Temperature: neutral-warm, 5700K","Contrast: medium","Saturation: +15","Look: bright, colorful, clean"]},
+lux:{music:"Soft jazz or minimal ambient pads",bpm:"70-90",mdb:-25,asl:"4-6 sec",tr:"Slow dissolves, slow push-ins",grade:["Temperature: warm neutral, 5400K","Contrast: medium-high, rich blacks","Saturation: -5 with warm highlights","Look: elegant, soft highlight roll-off, subtle gold tint"]},
+dram:{music:"Cinematic percussion + strings",bpm:"80-100",mdb:-22,asl:"3-6 sec",tr:"Hard cuts with dips to black, slow zoom-ins",grade:["Temperature: cool shadows, warm highlights","Contrast: high, deep blacks","Saturation: -10","Look: teal-orange cinematic"]},
+insp:{music:"Uplifting acoustic or light orchestral",bpm:"90-110",mdb:-22,asl:"3-5 sec",tr:"Cuts with gentle zoom, light dissolves on key lines",grade:["Temperature: warm, 5600-5800K","Contrast: medium","Saturation: +5","Look: bright, hopeful, clean highlights"]}};
 const THEME={
-edu:{pal:[["#FFFFFF","Main text"],["#FFD60A","Keyword highlight"],["#14B8A6","Accent / lower third"],["#0F172A","Text background"]],b:"slides, diagrams, screen recordings or notes cutaways",f:[C("Soft click on each bullet point",["click"],/soft|light|subtle/),C("Gentle pop on number or step reveals",["pop"]),C("One subtle ding on a key point (use rarely)",["notify"],/ding|chime|ping/)]},
-tut:{pal:[["#FFFFFF","Main text"],["#38BDF8","Step highlight"],["#FBBF24","Warning / tip"],["#0B1220","Background"]],b:"screen recordings, close-ups of each step, on-screen arrows",f:[C("Soft click on each step",["click"],/soft|light/),C("Pop when a tip appears",["pop"]),C("One ding when the result is ready",["notify","success"],/ding|chime|success/)]},
-biz:{pal:[["#FFFFFF","Main text"],["#2563EB","Brand accent"],["#F59E0B","Highlight"],["#111827","Background"]],b:"product shots, charts, office cutaways",f:[C("Clean whoosh on text entrance",["whoosh"],/smooth|soft|light|swoosh/),C("Soft tick as charts animate",["tick","click"],/tick|count/),C("Short swoosh on logo reveal",["whoosh","notify"],/swoosh|reveal|short/)]},
-ad:{pal:[["#FFFFFF","Main text"],["#EF4444","Offer / price"],["#FACC15","Limited-time highlight"],["#111111","Background"]],b:"product close-ups, usage shots, price and offer cards",f:[C("Sparkle on the offer reveal",["notify","success"],/sparkle|shimmer|magic|reveal|chime/),C("Whoosh on price and text pops",["whoosh","pop"]),C("Riser before the CTA",["riser"])]},
-test:{pal:[["#FFFFFF","Main text"],["#22C55E","Result / success"],["#FACC15","Star rating"],["#111827","Background"]],b:"product in use, before/after, the customer's real environment",f:[C("Soft tick on rating stars",["tick","click"],/soft|tick/),C("Gentle pop on results",["pop"]),C("Stay natural, no hype sounds")]},
-rev:{pal:[["#FFFFFF","Main text"],["#22C55E","Pros / good"],["#EF4444","Cons / bad"],["#FACC15","Rating stars"]],b:"product close-ups, unboxing, before/after",f:[C("Tick sound for pros",["success","click"],/confirm|accept|success|tick/),C("Buzz sound for cons",["error"],/buzz|deny|error/),C("Cloth / box foley during unboxing",["foley"],/cloth|fabric|paper|box/)]},
-tech:{pal:[["#FFFFFF","Main text"],["#22D3EE","Spec highlight"],["#8B5CF6","Accent"],["#0A0A0F","Background"]],b:"product close-ups, screen recordings, spec cards",f:[C("Digital blip on spec cards",["glitch","notify"],/blip|bleep|data|digital|beep/),C("Click on UI cutaways",["click"],/ui|click/),C("Whoosh on feature transitions",["whoosh"])]},
-fash:{pal:[["#F4ECE1","Cream main text"],["#C9A24B","Gold accent"],["#7F1D1D","Deep maroon"],["#1C1917","Background"]],b:"fabric close-ups, slow-mo walks, detail shots",f:[C("Fabric swish synced to cloth movement",["whoosh","foley"],/swish|cloth|fabric|soft|smooth/),C("Soft shimmer on logo reveal",["notify","success"],/shimmer|sparkle|chime|magic|reveal/),C("Camera shutter click on look changes",["camera"],/shutter/)]},
-beauty:{pal:[["#FFF1F2","Soft white text"],["#F472B6","Pink highlight"],["#D4AF37","Gold accent"],["#2A1A22","Background"]],b:"product swatches, application close-ups, before/after",f:[C("Soft shimmer on product reveal",["notify","success"],/shimmer|sparkle|chime|magic|reveal/),C("Light tap on product close-ups",["click"],/tap|soft/),C("Click of compacts and caps",["click","foley"],/click|cap|pen/)]},
-food:{pal:[["#FFF7ED","Cream text"],["#F97316","Dish highlight"],["#B91C1C","Spice red"],["#1C1917","Background"]],b:"close-up food shots, steam, ingredient prep",f:[C("Sizzle, chop and pour foley on cutaways",["foley"],/sizzle|fire|fry|chop|pour|water/),C("Soft tap on ingredient labels",["click"],/tap|soft/),C("Satisfying crunch or bite on the final shot",["foley","impact"],/crunch|bite|snap/)]},
-fit:{pal:[["#FFFFFF","Main text"],["#84CC16","Progress / reps"],["#F97316","Intensity accent"],["#0B0B0B","Background"]],b:"exercise demos, slow-mo reps, counters",f:[C("Beep on the rep counter",["notify","tick"],/beep|blip|bleep|count/),C("Impact on the final rep",["impact"]),C("Rising tone for intensity",["riser"])]},
-travel:{pal:[["#FFFFFF","Main text"],["#38BDF8","Location tag"],["#FBBF24","Sunset accent"],["#0B1B2B","Background"]],b:"landscapes, drone-style shots, local street life, food",f:[C("Real location sound under every cutaway"),C("Whoosh on map and location tags",["whoosh"]),C("Footsteps, water or wind foley",["foley"],/foot|step|water|wind/)]},
-house:{pal:[["#FFFFFF","Main text"],["#0EA5E9","Feature highlight"],["#F59E0B","Price accent"],["#111827","Background"]],b:"room-by-room walkthrough, exterior, floor plan",f:[C("Door open / close foley on room changes",["foley"],/door/),C("Soft whoosh on feature tags",["whoosh"],/soft|smooth|light/),C("Footstep ambience during the walkthrough",["foley"],/foot|step/)]},
-vlog:{pal:[["#FFFFFF","Main text"],["#FF5C8A","Fun highlight"],["#FDE68A","Emoji / sticker accent"],["#000000","Outline"]],b:"location shots, handheld b-roll, reactions",f:[C("Pop sound on stickers",["pop"]),C("Light cloth or footstep foley",["foley"],/cloth|fabric|foot|step/),C("Swoosh on scene changes",["whoosh"],/swoosh|swipe/)]},
-story:{pal:[["#FDF6E3","Warm cream text"],["#F97316","Key moment highlight"],["#92400E","Warm brown accent"],["#1C1917","Background"]],b:"old photos, locations from the story, hands and details",f:[C("Soft swell in emotional moments",["riser","cinematic"],/soft|swell|reverse|long/),C("Paper or photo flip on old pictures",["foley","camera"],/paper|page|film|photo/),C("Quiet room tone to let the story breathe")]},
-moti:{pal:[["#FFFFFF","Main text"],["#FBBF24","Gold highlight"],["#EF4444","Power word"],["#0B0B0B","Background"]],b:"slow-mo, city / sunrise shots, struggle-to-success cutaways",f:[C("Low riser before the hook",["riser"],/riser|long|build/),C("Impact hit on power words",["impact","sub"],/impact|hit|stomp/),C("Low heartbeat or sub boom in emotional parts",["sub","cinematic"],/heart|sub|boom/)]},
-career:{pal:[["#FFFFFF","Main text"],["#3B82F6","Tip highlight"],["#10B981","Success accent"],["#0F172A","Background"]],b:"office shots, laptop and desk, resume or screen cutaways",f:[C("Soft pop for each tip number",["pop"],/soft|minimal/),C("Click on checklist items",["click"]),C("Light success chime on the final tip",["success","notify"],/success|chime|confirm/)]},
-int:{pal:[["#FFFFFF","Main text"],["#F59E0B","Guest name highlight"],["#6366F1","Quote accent"],["#111111","Background"]],b:"reaction shots of the listener, hands, wide two-shot",f:[C("Very light whoosh on the name lower third",["whoosh"],/soft|light|smooth|short/),C("Quote-mark pop on pull-quotes",["pop"]),C("Keep the rest of the audio natural")]},
-news:{pal:[["#FFFFFF","Main text"],["#DC2626","Headline accent"],["#1D4ED8","Lower third"],["#0F172A","Background"]],b:"archive footage, maps, headline screenshots, data graphics",f:[C("Short swoosh on lower thirds",["whoosh"],/short|swoosh|quick/),C("Subtle tick on counters",["tick"],/tick|count/),C("No dramatic SFX, stay neutral")]},
-event:{pal:[["#FFFFFF","Main text"],["#A855F7","Date / time highlight"],["#F59E0B","Venue accent"],["#0B0B1A","Background"]],b:"venue shots, past event clips, crowd, countdown graphics",f:[C("Countdown tick on the date reveal",["tick"],/count|tick|clock/),C("Whoosh on location and time",["whoosh"]),C("Short crowd cheer under the CTA",["crowd"],/cheer|crowd|applause/)]},
-aware:{pal:[["#FFFFFF","Main text"],["#F59E0B","Key fact"],["#EF4444","Urgent point"],["#111827","Background"]],b:"real-life footage, statistics cards, community shots",f:[C("Soft low tone on statistics",["sub","cinematic"],/soft|low|sub/),C("No flashy SFX, keep it respectful"),C("Subtle heartbeat on the call to action",["sub"],/heart/)]},
-comedy:{pal:[["#FFFFFF","Main text"],["#FACC15","Punchline highlight"],["#EC4899","Reaction sticker"],["#000000","Outline"]],b:"reaction zooms, freeze frames, insert gags",f:[C("Record scratch or boing on the punchline",["pop","glitch"],/boing|bounce|scratch|spring/),C("Pop on reaction text",["pop"]),C("Quick whoosh on snap zooms",["whoosh"],/quick|fast|short/)]},
-rel:{pal:[["#F5EBD0","Cream main text"],["#10B981","Soft green accent"],["#D4AF37","Gold (use very little)"],["#0F2A1F","Deep green background"]],b:"nature, respectful calligraphy / architecture stills, slow shots",f:[C("No sudden SFX"),C("Light page turn (for a book)",["foley"],/paper|page/),C("If any music: vocal-only nasheed or nature ambience only")]}};
-
+edu:{pal:[["#FFFFFF","Caption text"],["#FFD60A","Keyword highlight"],["#14B8A6","Lower third accent"],["#0F172A","Caption box"]],b:"slides, diagrams, screen recordings or notes",f:["Soft click on each bullet point","Gentle pop on number or step reveals","One subtle ding on a key point (use rarely)"],cap:"The <k>key idea</k> in one line"},
+tut:{pal:[["#FFFFFF","Caption text"],["#38BDF8","Step highlight"],["#FBBF24","Warning or tip"],["#0B1220","Caption box"]],b:"screen recordings, close-ups of each step, on-screen arrows",f:["Soft click on each step","Pop when a tip appears","One ding when the result is ready"],cap:"Step 2: <k>add the filter</k>"},
+biz:{pal:[["#FFFFFF","Caption text"],["#2563EB","Brand accent"],["#F59E0B","Highlight"],["#111827","Caption box"]],b:"product shots, charts, office cutaways",f:["Clean whoosh on text entrance","Soft tick as charts animate","Short swoosh on logo reveal"],cap:"Revenue grew <k>3x</k> this year"},
+ad:{pal:[["#FFFFFF","Caption text"],["#EF4444","Offer or price"],["#FACC15","Limited-time highlight"],["#111111","Caption box"]],b:"product close-ups, usage shots, price and offer cards",f:["Sparkle on the offer reveal","Whoosh on price and text pops","Riser before the call to action"],cap:"Today only: <k>40% off</k>"},
+test:{pal:[["#FFFFFF","Caption text"],["#22C55E","Result or success"],["#FACC15","Star rating"],["#111827","Caption box"]],b:"the product in use, before/after, the customer's real space",f:["Soft tick on rating stars","Gentle pop on results","Stay natural, no hype sounds"],cap:"It saved me <k>10 hours</k> a week"},
+rev:{pal:[["#FFFFFF","Caption text"],["#22C55E","Pros"],["#EF4444","Cons"],["#111827","Caption box"]],b:"product close-ups, unboxing, before/after",f:["Tick sound for pros","Buzz sound for cons","Cloth or box foley during unboxing"],cap:"Battery: <k>2 full days</k>"},
+tech:{pal:[["#FFFFFF","Caption text"],["#22D3EE","Spec highlight"],["#8B5CF6","Accent"],["#0A0A0F","Caption box"]],b:"product close-ups, screen recordings, spec cards",f:["Digital blip on spec cards","Click on UI cutaways","Whoosh on feature transitions"],cap:"<k>120Hz</k> display, finally"},
+fash:{pal:[["#F4ECE1","Cream caption text"],["#C9A24B","Gold accent"],["#7F1D1D","Deep maroon"],["#1C1917","Caption box"]],b:"fabric close-ups, slow-mo walks, detail shots",f:["Fabric swish synced to cloth movement","Soft shimmer on logo reveal","Camera shutter click on look changes"],cap:"Hand-stitched <k>silk</k>"},
+beauty:{pal:[["#FFF1F2","Soft white text"],["#F472B6","Pink highlight"],["#D4AF37","Gold accent"],["#2A1A22","Caption box"]],b:"product swatches, application close-ups, before/after",f:["Soft shimmer on product reveal","Light tap on product close-ups","Click of compacts and caps"],cap:"Blend <k>outward</k>, not down"},
+food:{pal:[["#FFF7ED","Cream caption text"],["#F97316","Dish highlight"],["#B91C1C","Spice red"],["#1C1917","Caption box"]],b:"close-up food shots, steam, ingredient prep",f:["Sizzle, chop and pour foley on cutaways","Soft tap on ingredient labels","Crunch or bite sound on the final shot"],cap:"Add <k>2 spoons</k> of ghee"},
+fit:{pal:[["#FFFFFF","Caption text"],["#84CC16","Progress or reps"],["#F97316","Intensity accent"],["#0B0B0B","Caption box"]],b:"exercise demos, slow-mo reps, counters",f:["Beep on the rep counter","Impact on the final rep","Rising tone for intensity"],cap:"<k>3 sets</k> of 12 reps"},
+travel:{pal:[["#FFFFFF","Caption text"],["#38BDF8","Location tag"],["#FBBF24","Sunset accent"],["#0B1B2B","Caption box"]],b:"landscapes, wide establishing shots, local street life, food",f:["Real location sound under every cutaway","Whoosh on map and location tags","Footsteps, water or wind foley"],cap:"Day 2: <k>Sajek Valley</k>"},
+house:{pal:[["#FFFFFF","Caption text"],["#0EA5E9","Feature highlight"],["#F59E0B","Price accent"],["#111827","Caption box"]],b:"room-by-room walkthrough, exterior, floor plan",f:["Door open or close foley on room changes","Soft whoosh on feature tags","Footstep ambience during the walkthrough"],cap:"<k>3 bed</k> · 1,450 sq ft"},
+vlog:{pal:[["#FFFFFF","Caption text"],["#FF5C8A","Fun highlight"],["#FDE68A","Sticker accent"],["#000000","Text outline"]],b:"location shots, handheld b-roll, reactions",f:["Pop sound on stickers","Light cloth or footstep foley","Swoosh on scene changes"],cap:"Okay, <k>this</k> was unexpected"},
+story:{pal:[["#FDF6E3","Warm cream text"],["#F97316","Key moment highlight"],["#92400E","Warm brown accent"],["#1C1917","Caption box"]],b:"old photos, places from the story, hands and details",f:["Soft swell in emotional moments","Paper or photo flip on old pictures","Quiet room tone so the story can breathe"],cap:"That night <k>changed everything</k>"},
+moti:{pal:[["#FFFFFF","Caption text"],["#FBBF24","Gold highlight"],["#EF4444","Power word"],["#0B0B0B","Caption box"]],b:"slow-mo, city or sunrise shots, struggle-to-success cutaways",f:["Low riser before the hook","Impact hit on power words","Low heartbeat or sub boom in emotional parts"],cap:"Nobody is <k>coming to save you</k>"},
+career:{pal:[["#FFFFFF","Caption text"],["#3B82F6","Tip highlight"],["#10B981","Success accent"],["#0F172A","Caption box"]],b:"office shots, laptop and desk, resume or screen cutaways",f:["Soft pop for each tip number","Click on checklist items","Light success chime on the final tip"],cap:"Tip 3: <k>quantify</k> your results"},
+int:{pal:[["#FFFFFF","Caption text"],["#F59E0B","Guest name highlight"],["#6366F1","Quote accent"],["#111111","Caption box"]],b:"reaction shots of the listener, hands, wide two-shot",f:["Very light whoosh on the name lower third","Pop on pull-quotes","Keep the rest of the audio natural"],cap:"“We almost <k>shut down</k>”"},
+news:{pal:[["#FFFFFF","Caption text"],["#DC2626","Headline accent"],["#1D4ED8","Lower third"],["#0F172A","Caption box"]],b:"archive footage, maps, headline screenshots, data graphics",f:["Short swoosh on lower thirds","Subtle tick on counters","No dramatic SFX, stay neutral"],cap:"Prices up <k>18%</k> since June"},
+event:{pal:[["#FFFFFF","Caption text"],["#A855F7","Date and time"],["#F59E0B","Venue accent"],["#0B0B1A","Caption box"]],b:"venue shots, past event clips, crowd, countdown graphics",f:["Countdown tick on the date reveal","Whoosh on location and time","Short crowd cheer under the call to action"],cap:"<k>Friday, 8 PM</k> · Dhaka"},
+aware:{pal:[["#FFFFFF","Caption text"],["#F59E0B","Key fact"],["#EF4444","Urgent point"],["#111827","Caption box"]],b:"real-life footage, statistics cards, community shots",f:["Soft low tone on statistics","No flashy SFX, keep it respectful","Subtle heartbeat on the call to action"],cap:"<k>1 in 4</k> children affected"},
+comedy:{pal:[["#FFFFFF","Caption text"],["#FACC15","Punchline highlight"],["#EC4899","Reaction sticker"],["#000000","Text outline"]],b:"reaction zooms, freeze frames, insert gags",f:["Record scratch or boing on the punchline","Pop on reaction text","Quick whoosh on snap zooms"],cap:"Me at 3 AM: <k>one more episode</k>"},
+rel:{pal:[["#F5EBD0","Cream caption text"],["#10B981","Soft green accent"],["#D4AF37","Gold (use very little)"],["#0F2A1F","Deep green caption box"]],b:"nature, calligraphy and architecture stills, slow shots",f:[],cap:"Patience is <k>half of faith</k>"}};
 const ENV={
-home:{amb:"Soft room tone + faint distant outside sounds (fan / traffic)",db:"-38",fix:"If there's echo, use De-reverb; use Noise Reduction for background hiss"},
-office:{amb:"AC hum + distant keyboard / phone, light office murmur",db:"-36",fix:"Cut AC/fan hum with EQ around 100-120Hz"},
-studio:{amb:"Very light room tone / air",db:"-45",fix:"Keep it natural; just clean up breaths and clicks"},
-out:{amb:"Birds, wind, distant road sounds",db:"-30",fix:"High-pass at 80-100Hz + denoise to tame wind noise"},
-cafe:{amb:"Cafe / tea-stall murmur, cup clatter, distant rickshaw bell",db:"-32",fix:"Duck 6 dB under the voice, keep ambience in stereo"},
-kitchen:{amb:"Light kitchen sounds (sizzle, utensils) kept low, plus room tone",db:"-34",fix:"Cut exhaust-fan hum with EQ, keep sizzle under the voice"},
-car:{amb:"Low car cabin hum and soft road noise",db:"-34",fix:"High-pass at 100Hz and denoise; keep the mic close to the speaker"},
-class:{amb:"Quiet room tone, faint chairs or marker sounds",db:"-38",fix:"Use De-reverb, big rooms add echo"},
-shop:{amb:"Workshop / factory hum, distant machines or tools",db:"-32",fix:"EQ-cut the machine drone and duck 6 dB under the voice"},
-green:{amb:"Add a room tone that matches the new background (green screen has none)",db:"-40",fix:"Match the background's ambience and reverb to the speaker's voice"}};
-const LIGHT={
-bright:"Protect highlights, keep exposure right, keep skin tone on the skin-tone line",
-dim:"Raise exposure +0.5 EV, denoise shadows, keep the black point soft",
-win:"Highlights -30, shadows +20, balance the face against the background",
-mixed:"Fix white balance first (warm/cool mix), then grade",
-golden:"Golden hour: light is warm, so cool the white balance slightly and protect highlights on the face",
-ring:"Ring light: soften skin highlights, tame the catchlight glare, add contrast if it looks flat",
-over:"Overcast: light is flat, so add contrast and a little warmth, lift the face slightly",
-night:"Night / practical lights: fix the color cast from each light, keep blacks clean, denoise"};
+home:{amb:"Soft room tone with faint outside sounds (fan, distant traffic)",db:-38,fix:"use De-reverb for room echo and light noise reduction for hiss"},
+office:{amb:"AC hum, distant keyboard and phones, light office murmur",db:-36,fix:"cut AC or fan hum with EQ around 100-120 Hz"},
+studio:{amb:"Very light room tone",db:-45,fix:"keep it natural and just clean up breaths and mouth clicks"},
+out:{amb:"Birds, wind and distant road sounds",db:-30,fix:"high-pass at 80-100 Hz and denoise to tame wind"},
+cafe:{amb:"Cafe or tea-stall murmur, cup clatter, a distant rickshaw bell",db:-32,fix:"duck the crowd 6 dB under the voice and keep the ambience in stereo"},
+kitchen:{amb:"Light kitchen sounds (sizzle, utensils) kept low, plus room tone",db:-34,fix:"cut exhaust-fan hum with EQ and keep the sizzle under the voice"},
+car:{amb:"Low cabin hum and soft road noise",db:-34,fix:"high-pass at 100 Hz and denoise"},
+class:{amb:"Quiet room tone, faint chairs or marker sounds",db:-38,fix:"use De-reverb, because big rooms add echo"},
+shop:{amb:"Workshop or factory hum, distant machines",db:-32,fix:"EQ out the machine drone and duck it 6 dB under the voice"},
+green:{amb:"A room tone that matches the new background (green screen has none)",db:-40,fix:"match the background's ambience and reverb to the voice"}};
+const LIGHTFIX={bright:"Protect highlights and keep skin tone on the skin-tone line",dim:"Raise exposure about +0.5 EV, denoise the shadows, keep the black point soft",win:"Highlights -30, shadows +20 to balance the face against the window",mixed:"Fix white balance first (warm and cool light mixed), then grade",golden:"Light is warm already: cool the white balance slightly and protect the face",ring:"Soften skin highlights and add contrast if the face looks flat",over:"Light is flat: add contrast and a little warmth, lift the face slightly",night:"Fix the color cast from each light, keep blacks clean, denoise"};
 const PLAT={
-reel:{ex:"1080x1920, 30fps, H.264 MP4, 10-12 Mbps",cap:"captions in the center of the screen (keep top 10% and bottom 20% clear)",hook:"Hook in the first 2 seconds"},
-yt:{ex:"1920x1080, 24/30fps, H.264 MP4, 12-16 Mbps",cap:"lower third + captions with a 5% safe margin at the bottom",hook:"Hook + value promise in the first 5-8 seconds"},
-fb:{ex:"1080x1350, 30fps, H.264 MP4, 8-10 Mbps",cap:"captions always on (most people watch muted), centered",hook:"Hook in the first 3 seconds"},
-shorts:{ex:"1080x1920, 30fps, H.264 MP4, 10-12 Mbps, under 60 sec",cap:"captions in the center, keep the bottom 20% clear for title and buttons",hook:"Hook in the first 1-2 seconds"},
-tiktok:{ex:"1080x1920, 30fps, H.264 MP4, 8-12 Mbps",cap:"captions center-top, keep the right side and bottom 25% clear for buttons",hook:"Hook in the first 1-2 seconds"},
-story:{ex:"1080x1920, 30fps, H.264 MP4, 8-10 Mbps, 15 sec per card",cap:"keep text out of the top 14% and bottom 20% (app UI zones)",hook:"Hook in the first second"},
-li:{ex:"1080x1080 or 1080x1350, 30fps, H.264 MP4, 8-10 Mbps",cap:"captions always on, clean professional font, large size",hook:"Hook with a clear takeaway in the first 3 seconds"}};
-const LEN={s:"Hook (0-3s) → Main point (3-45s) → CTA (last 5s). Skip a long intro.",m:"Hook → Context → 3 main points → Recap → CTA. Add chapter markers.",l:"Hook → Intro → Sections 1-4 (add B-roll/graphics per section) → Recap → CTA. Add chapter title cards.",xl:"Hook → Agenda → Chapter-wise sections (3-5 min per chapter) → Recap. Add chapters and timestamps."};
-const PACE={slow:"Slow speaker: cut tighter and shorten the pauses",norm:"Normal pace: cut naturally, keep the breaths",fast:"Fast speaker: keep the breaths, cutting too much will feel rushed"};
-const CAP={bn:"Bangla: use a clean Bangla font with proper conjuncts (Hind Siliguri or Noto Sans Bengali), about 10% larger than English, and double-check spelling",en:"English: bold sans-serif (Inter, Montserrat or Poppins), sentence case, keyword in the highlight color",both:"Bangla + English: main language on top, second language smaller below, one line each"};
-
-/* SFX categories, matched against file + folder names */
-const CATS=[
-["whoosh","Whoosh / swipe",/wh?oo+s|swish|swipe|swoop|pass ?by|slide|whip|stretch|transition/],
-["click","Click / tap",/click|\btap|button|\bbtn|select|mouse|tactile|toggle|hover|snap|keypress/],
-["pop","Pop / bounce",/pop|bubble|bounce|boing|\bjug|snap/],
-["notify","Ding / notification",/notif|\bding|chime|\bping|\bbell|alert|message|sonar|radar|bleep|beep|blip|shimmer|sparkle|magic|reveal|macos|iphone|apple/],
-["success","Success / confirm",/success|confirm|accept|cash|ching|register|treasure|tressure|level ?up|\bwin\b|correct|coin|reward/],
-["error","Error / deny",/error|deny|denied|fail|wrong|buzz|negative|cancel|\boff\b/],
-["riser","Riser / build-up",/riser|\brise|rising|wind ?up|build ?up|uplift|reverse|tension/],
-["impact","Impact / hit",/impact|\bhits?\b|stomp|boom|empact|\bpunch|thud|slam|bang|\bdrop\b/],
-["sub","Sub drop / low boom",/sub ?drop|\bsub\b|bass|\b808|heart/],
-["glitch","Glitch / digital",/glitch|\bdata|digital|beepy|static|distort|\bbit\b|micro|servo|sci ?fi|\bhud\b/],
-["typing","Typing / keys",/typ(e|ing)|keyboard|tuping|\bkeys?\b/],
-["tick","Tick / counter",/tick|counter|counting|clock|timer|countdown|ratchet|gear/],
-["spin","Spin / rotate",/spin|rotat|\bturn|twist|wheel/],
-["camera","Camera / film",/shutter|camera|\bfilm|photo/],
-["foley","Foley / texture",/paper|page|pencil|\bpen\b|marker|highlighter|draw|writ|glass|blade|slice|door|fire|sizzle|cloth|fabric|foot|step|frog|bottle|blow|water|crunch|bite|chop|pour|crackle/],
-["crowd","Crowd / live",/crowd|cheer|applause|clap|audience|\blive\b/],
-["cinematic","Cinematic / ambience",/cinematic|space|drone|horror|ambien|atmos|trailer|\bpad\b|vlog ?beat|background/]];
-const CATL=Object.fromEntries(CATS.map(c=>[c[0],c[1]]));
-const DUR={click:[0,.7],pop:[0,.9],whoosh:[.25,2],riser:[1.5,15],impact:[.2,4],sub:[.5,6],notify:[.1,2.5],success:[.2,3],error:[.1,1.5],tick:[0,2.5],glitch:[.05,2],typing:[.3,8],camera:[.05,1.5],foley:[.1,6],crowd:[1,15],cinematic:[1,40],spin:[.2,3]};
+reel:{n:"Reels / Shorts / TikTok (9:16)",ex:"1080×1920, 30 fps, H.264 MP4, 10-12 Mbps",cap:"Captions centered, keep the top 10% and bottom 20% clear",hook:"Hook in the first 2 seconds"},
+yt:{n:"YouTube (16:9)",ex:"1920×1080, 24 or 30 fps, H.264 MP4, 12-16 Mbps",cap:"Lower third plus captions, 5% safe margin at the bottom",hook:"Hook and value promise in the first 5-8 seconds"},
+fb:{n:"Facebook / Instagram feed (4:5)",ex:"1080×1350, 30 fps, H.264 MP4, 8-10 Mbps",cap:"Captions always on (most people watch muted), centered",hook:"Hook in the first 3 seconds"},
+li:{n:"LinkedIn / square (1:1)",ex:"1080×1080, 30 fps, H.264 MP4, 8-10 Mbps",cap:"Captions always on, large, clean font",hook:"A clear takeaway in the first 3 seconds"}};
+const LEN={s:"Hook (0-3s) → main point → call to action in the last 5s. Skip a long intro.",m:"Hook → context → 3 main points → recap → call to action. Add chapter markers.",l:"Hook → intro → 3-4 sections with B-roll or graphics each → recap → call to action. Add chapter title cards.",xl:"Hook → agenda → chapters of 3-5 minutes → recap. Add chapters and timestamps."};
 
 /* ---------------- helpers ---------------- */
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const easeOut=t=>1-Math.pow(1-t,3);
@@ -687,24 +598,34 @@ const fmtDur=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%6
 const fmtT=s=>{s=Math.max(0,s);const m=Math.floor(s/60);return m+":"+(s-m*60).toFixed(1).padStart(4,"0")};
 const fmtTC=(s,fps=25)=>{s=Math.max(0,s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=Math.floor(s)%60,f=Math.floor((s%1)*fps);return pad(h)+":"+pad(m)+":"+pad(x)+":"+pad(f)};
 const fmtSize=b=>b>=1e9?(b/1073741824).toFixed(2)+" GB":b>=1e6?Math.round(b/1048576)+" MB":Math.max(1,Math.round(b/1024))+" KB";
+const fmtDb=v=>(v<0?"−":"")+Math.abs(Math.round(v))+" dB";
 const hex=rgb=>"#"+rgb.map(x=>Math.round(x).toString(16).padStart(2,"0")).join("").toUpperCase();
+const rgbOf=h=>{h=h.replace("#","");return[0,2,4].map(i=>parseInt(h.substr(i,2),16))};
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 function relL(rgb){const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(rgb[0])+.7152*f(rgb[1])+.0722*f(rgb[2])}
 function contrast(a,b){const x=relL(a),y=relL(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
 function ratioLabel(w,h){const r=w/h,K=[[9/16,"9:16"],[4/5,"4:5"],[1,"1:1"],[4/3,"4:3"],[16/9,"16:9"],[21/9,"21:9"],[3/4,"3:4"]];for(const[k,l]of K)if(Math.abs(r-k)<.03)return l;return r.toFixed(2)+":1"}
-function col(s){s=(s||"").trim();if(!s)return null;const m=s.match(/#[0-9a-f]{3,8}\b/i);
-  const ok=w=>{const e=document.createElement("span");e.style.color=w;return e.style.color!==""};
-  const q=m?m[0]:s.split(/[\s,]+/).find(ok);if(!q)return null;
-  const el=document.createElement("span");el.style.color=q;document.body.appendChild(el);
-  const rgb=getComputedStyle(el).color.match(/[\d.]+/g).slice(0,3).map(Number);el.remove();
-  return{rgb,hex:hex(rgb),lum:(.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2])/255}}
+function platOf(A){if(!A.w)return"yt";const r=A.w/A.h;return r<.7?"reel":r<.9?"fb":r<1.15?"li":"yt"}
+const lenOf=d=>d<60?"s":d<300?"m":d<900?"l":"xl";
+function nameColor(rgb){const[r,g,b]=rgb.map(v=>v/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn,s=d?d/(1-Math.abs(2*l-1)):0;let h=0;
+  if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}
+  if(s<.12||d<.05)return l>.9?"white":l>.68?"light grey":l>.4?"grey":l>.15?"dark grey":"black";
+  if(h>=15&&h<55&&l>.66&&s<.65)return"light beige";
+  if(h>=15&&h<45&&l<.42)return"brown";
+  let n=[[15,"red"],[40,"orange"],[65,"yellow"],[160,"green"],[195,"teal"],[255,"blue"],[290,"purple"],[335,"pink"],[361,"red"]].find(x=>h<x[0])[1];
+  if(n==="blue"&&l<.3)return"navy";return(l>.72?"light ":l<.28?"dark ":"")+n}
 const ICON={
-play:'<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.6v10.8c0 .6.6.9 1.1.6l8.2-5.4c.4-.3.4-.9 0-1.2L5.6 2c-.5-.3-1.1 0-1.1.6z" fill="currentColor"/></svg>',
-stop:'<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1.6" fill="currentColor"/></svg>',
-wave:'<svg width="64" height="30" viewBox="0 0 64 30" aria-hidden="true"><g fill="currentColor">'+Array.from({length:16},(_,i)=>{const h=4+Math.abs(Math.sin(i*1.3)+Math.sin(i*.55))*9;return '<rect x="'+(i*4)+'" y="'+(15-h/2)+'" width="2.4" height="'+h+'" rx="1.2"/>'}).join("")+'</g></svg>'};
+cut:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.6 7.6 20 18M8.6 16.4 20 6"/></svg>',
+color:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.5-1.3.2-2.3 1.6-2.3H18a3 3 0 0 0 3-3C21 7 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7" r="1.2" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.2" fill="currentColor"/></svg>',
+sound:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
+sfx:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
+music:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>',
+exp:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>',
+copy:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>'};
 function once(el,ev,ms){return new Promise((res,rej)=>{let t;const done=f=>x=>{clearTimeout(t);el.removeEventListener(ev,ok);el.removeEventListener("error",bad);f(x)};const ok=done(res),bad=done(()=>rej(new Error("decode")));el.addEventListener(ev,ok);el.addEventListener("error",bad);t=setTimeout(()=>{el.removeEventListener(ev,ok);el.removeEventListener("error",bad);rej(new Error("timeout"))},ms)})}
+const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,"image/jpeg",q));
 
-/* ---------------- scene painter (hero monitor + example frames) ---------------- */
+/* ---------------- scene painter ---------------- */
 function paintScene(c,W,H,o){
   o=o||{};const tilt=o.tilt||0,br=o.breath||0,z=o.zoom||1,dy=o.dy||0;
   c.save();c.translate(W/2,H*.6);c.scale(z,z);c.translate(-W/2,-H*.6);
@@ -734,43 +655,44 @@ function paintScene(c,W,H,o){
   c.restore();
 }
 
-/* ---------------- analysis core ---------------- */
+/* ---------------- measuring ---------------- */
 function frameStats(c,w,h){
-  const d=c.getImageData(0,0,w,h).data;let n=0,sL=0,sL2=0,warm=0,clip=0,wl=0,nl=0,wr=0,nr=0;const bg=[],dr=[],all=[];
+  const d=c.getImageData(0,0,w,h).data;let n=0,sL=0,sL2=0,warm=0,clip=0,wl=0,nl=0,wr=0,nr=0,sky=0,nTop=0,green=0;const bg=[],dr=[],all=[];
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4,r=d[i],g=d[i+1],b=d[i+2];const L=(.2126*r+.7152*g+.0722*b)/255;n++;sL+=L;sL2+=L*L;const wm=(r-b)/255;warm+=wm;if(L>.965)clip++;
     if(x<w/2){wl+=wm;nl++}else{wr+=wm;nr++}
     const fx=x/w,fy=y/h;if(fx<.16||fx>.84||fy<.17)bg.push(r,g,b);else if(fx>.33&&fx<.67&&fy>.74)dr.push(r,g,b);
+    if(fy<.3){nTop++;if(b>r+12&&b>=g-6&&L>.42)sky++}
+    if(g>r+8&&g>b+8&&L>.12&&L<.8)green++;
     if(((x+y)&1)===0)all.push(r,g,b)}
-  const lum=sL/n;return{lum,std:Math.sqrt(Math.max(0,sL2/n-lum*lum)),warm:warm/n,clip:clip/n,warmL:wl/nl,warmR:wr/nr,bg,dr,all}}
+  const lum=sL/n;return{lum,std:Math.sqrt(Math.max(0,sL2/n-lum*lum)),warm:warm/n,clip:clip/n,warmL:wl/nl,warmR:wr/nr,sky:nTop?sky/nTop:0,green:green/n,bg,dr,all}}
 function buckets(a){const m=new Map();for(let i=0;i<a.length;i+=3){const k=(a[i]>>4)<<8|(a[i+1]>>4)<<4|(a[i+2]>>4);let e=m.get(k);if(!e){e=[0,0,0,0];m.set(k,e)}e[0]+=a[i];e[1]+=a[i+1];e[2]+=a[i+2];e[3]++}return m}
 function ranked(m){const out=[];for(const[k]of m){const r=k>>8,g=k>>4&15,b=k&15;let c=0,R=0,G=0,B=0;
   for(let i=-1;i<2;i++)for(let j=-1;j<2;j++)for(let l=-1;l<2;l++){const rr=r+i,gg=g+j,bb=b+l;if(rr<0||gg<0||bb<0||rr>15||gg>15||bb>15)continue;const e=m.get(rr<<8|gg<<4|bb);if(e){c+=e[3];R+=e[0];G+=e[1];B+=e[2]}}
   out.push({c,rgb:[R/c,G/c,B/c].map(Math.round)})}return out.sort((a,b)=>b.c-a.c)}
-function dominant(a){return a.length<3?null:ranked(buckets(a))[0].rgb}
+const dominant=a=>a.length<3?null:ranked(buckets(a))[0].rgb;
 function palette(a,n){const out=[];for(const x of ranked(buckets(a))){if(out.every(o=>dist(o,x.rgb)>60))out.push(x.rgb);if(out.length>=n)break}return out}
 function summarizeFrames(st){
   const n=st.length,avg=k=>st.reduce((a,s)=>a+s[k],0)/n;const bg=[],dr=[],all=[];
   for(const s of st){for(const v of s.bg)bg.push(v);for(const v of s.dr)dr.push(v);for(const v of s.all)all.push(v)}
-  const f={lum:avg("lum"),std:avg("std"),warm:avg("warm"),clip:avg("clip"),cast:Math.abs(avg("warmL")-avg("warmR")),bg:dominant(bg),dress:dominant(dr),pal:palette(all,6)};
+  const f={lum:avg("lum"),std:avg("std"),warm:avg("warm"),clip:avg("clip"),cast:Math.abs(avg("warmL")-avg("warmR")),sky:avg("sky"),green:avg("green"),bg:dominant(bg),dress:dominant(dr),pal:palette(all,6)};
   f.light=f.lum<.2?(f.std>.2?"night":"dim"):f.lum<.32?"dim":f.cast>.12?"mixed":f.warm>.17?"golden":(f.clip>.05&&f.std>.22)?"win":"bright";
+  f.setting=(f.sky>.22||f.green>.25)?"outdoor":"indoor";
   return f}
-
 async function readVideo(url,onP){
   const v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="auto";v.src=url;
   await once(v,"loadedmetadata",20000);
-  const out={duration:isFinite(v.duration)?v.duration:null,w:v.videoWidth,h:v.videoHeight,frames:[],stats:[]};
+  const out={duration:isFinite(v.duration)?v.duration:null,w:v.videoWidth,h:v.videoHeight,frames:[],stats:[],ai:[]};
   if(!v.videoWidth||!out.duration){v.removeAttribute("src");v.load();return out}
   try{await once(v,"loadeddata",12000)}catch(e){}
-  const N=10,box=180,sc=Math.min(box/v.videoWidth,box/v.videoHeight),tw=Math.max(2,Math.round(v.videoWidth*sc)),th=Math.max(2,Math.round(v.videoHeight*sc));
-  const s2=Math.min(80/v.videoWidth,80/v.videoHeight),sw=Math.max(2,Math.round(v.videoWidth*s2)),sh=Math.max(2,Math.round(v.videoHeight*s2));
-  const big=document.createElement("canvas"),sm=document.createElement("canvas");big.width=tw;big.height=th;sm.width=sw;sm.height=sh;
-  const bc=big.getContext("2d"),scx=sm.getContext("2d",{willReadFrequently:true});
+  const N=10,AI=[1,2,4,5,7,8],VW=v.videoWidth,VH=v.videoHeight;
+  const mk=(box)=>{const s=Math.min(1,box/Math.max(VW,VH)),c=document.createElement("canvas");c.width=Math.max(2,Math.round(VW*s));c.height=Math.max(2,Math.round(VH*s));return c};
+  const big=mk(220),sm=mk(80),ai=mk(768),bc=big.getContext("2d"),scx=sm.getContext("2d",{willReadFrequently:true}),ac=ai.getContext("2d");
   for(let i=0;i<N;i++){const t=out.duration*(.04+.92*i/(N-1));v.currentTime=Math.min(t,out.duration-.05);
     try{await once(v,"seeked",8000)}catch(e){continue}
-    try{bc.drawImage(v,0,0,tw,th);out.frames.push({t,src:big.toDataURL("image/jpeg",.74)});scx.drawImage(v,0,0,sw,sh);out.stats.push(frameStats(scx,sw,sh))}catch(e){}
+    try{bc.drawImage(v,0,0,big.width,big.height);out.frames.push({t,src:big.toDataURL("image/jpeg",.76)});scx.drawImage(v,0,0,sm.width,sm.height);out.stats.push(frameStats(scx,sm.width,sm.height));
+      if(AI.includes(i)){ac.drawImage(v,0,0,ai.width,ai.height);const b=await toBlob(ai,.82);if(b)out.ai.push(b)}}catch(e){}
     onP&&onP((i+1)/N)}
   v.removeAttribute("src");v.load();return out}
-
 async function readAudio(file){
   const buf=await file.arrayBuffer();const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
   let ctx;try{ctx=new OAC(1,16000,16000)}catch(e){ctx=new OAC(1,44100,44100)}
@@ -780,7 +702,6 @@ async function readAudio(file){
   for(let c=0;c<ch;c++){const d=ab.getChannelData(c);for(let f=0;f<F;f++){let s=0,p=pk[f];const o=f*W;for(let k=0;k<W;k++){const x=d[o+k];s+=x*x;const a=x<0?-x:x;if(a>p)p=a}ms[f]+=s/W/ch;pk[f]=p}}
   const db=new Float32Array(F);let peak=0,clipWins=0;for(let f=0;f<F;f++){db[f]=10*Math.log10(ms[f]+1e-12);if(pk[f]>peak)peak=pk[f];if(pk[f]>.995)clipWins++}
   return{hop:.02,dur:F*.02,db,peak,clipWins}}
-
 function speechStats(A){
   const{db,hop}=A,F=db.length;if(F<50)return null;
   const srt=Float32Array.from(db).sort(),pct=p=>srt[clamp(Math.floor(p*(F-1)),0,F-1)];
@@ -802,7 +723,7 @@ function speechStats(A){
   const speech=c?10*Math.log10(e/c):-90;
   return{noise,p95,thr,range,head,tail,pauses,pauseTime,trim,active,speechTime,rate,pauseRatio,pace,speech,dur,conf:range<12?"low":range<20?"medium":"high"}}
 
-/* ---------------- example footage ---------------- */
+/* ---------------- example ---------------- */
 function sampleAudio(){
   const hop=.02,dur=94,F=Math.round(dur/hop),db=new Float32Array(F);let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
   const segs=[];let t=1.1;while(t<dur-1.6){const e=Math.min(dur-1.6,t+1.6+rnd()*2.8);segs.push([t,e]);const r=rnd();t=e+(r<.1?2.1+rnd()*.8:r<.34?.14+rnd()*.28:.55+rnd()*.85)}
@@ -811,13 +732,118 @@ function sampleAudio(){
   return{hop,dur:F*hop,db,peak:.72,clipWins:0}}
 function makeSample(){
   const audio=sampleAudio(),speech=speechStats(audio);
-  const big=document.createElement("canvas"),sm=document.createElement("canvas");big.width=192;big.height=108;sm.width=80;sm.height=45;
+  const big=document.createElement("canvas"),sm=document.createElement("canvas"),pv=document.createElement("canvas");big.width=192;big.height=108;sm.width=80;sm.height=45;pv.width=640;pv.height=360;
   const bc=big.getContext("2d"),scx=sm.getContext("2d",{willReadFrequently:true}),frames=[],stats=[];
   for(let i=0;i<10;i++){const o={tilt:Math.sin(i*1.7)*.03,zoom:i%3===1?1.08:1,dy:Math.sin(i*2.3)*1.5};paintScene(bc,192,108,o);frames.push({t:audio.dur*(.04+.92*i/9),src:big.toDataURL("image/jpeg",.82)});paintScene(scx,80,45,o);stats.push(frameStats(scx,80,45))}
-  return{sample:true,name:"studio_talk_v2.mp4",size:412*1048576,kind:"video",duration:audio.dur,w:1920,h:1080,frames,fr:summarizeFrames(stats),audio,speech,poster:frames[2].src}}
+  paintScene(pv.getContext("2d"),640,360,{});
+  return{sample:true,name:"studio_talk_v2.mp4",size:412*1048576,duration:audio.dur,w:1920,h:1080,frames,fr:summarizeFrames(stats),audio,speech,poster:pv.toDataURL("image/jpeg",.85),ai:[]}}
+const EXAMPLE_AI={category:"tut",confidence:"high",
+  seen:"A presenter in a navy shirt talks straight to camera against a warm beige wall, with a framed print on the left and a shelf with books and a plant on the right.",
+  setting:"indoor",location:"home",lighting:"win",mood:"calm",
+  cuts:{why:"Because this is a tutorial with a steady, normal-paced speaker, viewers need clear steps more than energy, so remove dead air but keep the rhythm relaxed.",
+    tips:["Jump-cut every pause over 0.5 seconds, leaving about 0.3 seconds of air","Punch in to 115% when a new step starts, back to 100% on the next one","Cut to a screen recording or close-up for each step, 4-8 seconds long","Use L-cuts so the voice carries over into each cutaway","Hold the wide shot on the final summary so the ending feels settled"]},
+  colors:{why:"Because the wall is light beige and the shirt is dark navy, white captions would disappear on the wall, so put them on a dark box and use accents that stand out against beige.",
+    palette:[{hex:"#FFFFFF",use:"Caption text, on the box"},{hex:"#0F1B33",use:"Caption box, 85% opacity"},{hex:"#F2B134",use:"Step numbers and keywords"},{hex:"#2E8A6E",use:"Tips and checkmarks"}],
+    grade:["The window light is soft but one-sided: lift the shadow side of the face by +10","Keep the wall warm but not orange, around 5400K","Saturation −5 so the navy shirt stays true","A light vignette pulls attention off the shelf and onto the face"]},
+  sound:{why:"Because it was shot indoors in a home room, the mic hears some room echo and a quiet background hum, so clean the voice before adding anything else.",
+    ambience:"Keep the room's own tone under every cut so jump cuts don't sound choppy.",
+    tips:["Light De-reverb first, then a gentle noise reduction pass","High-pass the voice at 80 Hz to remove rumble","Duck the music about 8 dB whenever the voice is talking"],
+    levels:{voice:-6,music:-24,ambience:-40,sfx:-20}},
+  sfx:{why:"Because tutorials live on clear steps, sounds should mark the structure, not decorate it. Four kinds are enough.",
+    cues:[{cue:"Soft click",where:"Each time a step number or bullet appears",level:-22},{cue:"Light whoosh",where:"When you cut to a screen recording",level:-20},{cue:"Small pop",where:"On tip callouts and arrows",level:-22},{cue:"Gentle ding",where:"Once, when the final result is shown",level:-18}]},
+  music:{why:"Because the mood is calm and the speaker talks almost all the time, music should sit far underneath and never compete.",style:"Lo-fi or soft piano, no vocals",bpm:"75-90",level:-24,tips:["Bring the music in after the hook, not under it","Fade it out 2 seconds before the call to action"]}};
+
+/* ---------------- plan building ---------------- */
+function guessKeys(A,h){
+  const fr=A.fr,k={category:"edu",location:"home",lighting:"bright",mood:"calm",setting:"indoor"};
+  if(fr){k.lighting=fr.light;k.setting=fr.setting;k.location=fr.setting==="outdoor"?"out":"home"}
+  if(h)Object.assign(k,Object.fromEntries(Object.entries(h).filter(([,v])=>v)));
+  if(h&&h.location)k.setting=LOCSET[h.location]||k.setting;
+  return k}
+function rulePlan(A,k){
+  const t=THEME[k.category]||THEME.edu,m=MOOD[k.mood]||MOOD.calm,e=ENV[k.location]||ENV.home,L=CATL[k.category],fr=A.fr,sp=A.speech,rel=k.category==="rel";
+  const pace=sp&&sp.conf!=="low"?sp.pace:null;
+  const cutWhy={slow:"tighten the gaps so it doesn't drag, but leave a breath between ideas.",norm:"cut out the dead air and keep the natural rhythm.",fast:"keep the breaths, or the edit will feel rushed."}[pace||"norm"];
+  const P={source:"rules",category:k.category,confidence:null,setting:k.setting||LOCSET[k.location],location:k.location,lighting:k.lighting,mood:k.mood,
+    seen:fr?"The background is mostly "+nameColor(fr.bg)+(fr.dress?" and the speaker's outfit is "+nameColor(fr.dress):"")+". Brightness averages "+Math.round(fr.lum*100)+"%.":"The picture couldn't be read, so this plan uses the sound and your choices."};
+  P.cuts={why:"Because this is "+(/^[aeiou]/i.test(L)?"an ":"a ")+L.toLowerCase()+" video"+(pace?" and the speaker talks at a "+({slow:"slow",norm:"normal",fast:"fast"})[pace]+" pace":"")+", "+cutWhy,
+    tips:["Jump-cut the ums, long pauses and bad takes. Aim for shots of "+m.asl,"Punch in to about 115% every 2-3 cuts to keep it moving","Use J-cuts and L-cuts so the voice runs over each cutaway","Add a cutaway every 8-12 seconds: "+t.b,"Transitions: "+m.tr]};
+  let pal=t.pal.map(([h,u])=>({hex:h,use:u}));let colWhy;
+  if(fr){const bgN=nameColor(fr.bg),drN=fr.dress?nameColor(fr.dress):null,w=contrast([255,255,255],fr.bg);
+    colWhy="Because your background is "+bgN+(drN?" and the outfit is "+drN:"")+", "+(w<4.5?"white captions won't stand out on their own, so put them on a dark box and keep the accent bright.":"white captions will read clearly; use the accent only for keywords.");
+    if(drN&&dist(fr.dress,fr.bg)<90)colWhy+=" The outfit and wall are close in color, so add a light vignette or rim light to separate the speaker."}
+  else colWhy="Because this is "+(/^[aeiou]/i.test(L)?"an ":"a ")+L.toLowerCase()+" video, keep one main caption color and one accent for keywords.";
+  P.colors={why:colWhy,palette:pal,grade:m.grade.concat([LIGHTFIX[k.lighting]||LIGHTFIX.bright])};
+  const out=(k.setting||LOCSET[k.location])==="outdoor";
+  P.sound={why:"Because it was shot "+(out?"outdoors":"indoors")+" ("+(LOCL[k.location]||"").toLowerCase()+")"+(sp?" and the background noise sits at "+Math.round(sp.noise)+" dBFS":"")+", "+e.fix+".",
+    ambience:e.amb+". Keep it under every cut so jump cuts don't sound choppy.",
+    tips:["Clean the voice first: "+e.fix,"Duck the music about 8 dB whenever the voice is talking","Fill silent gaps with room tone, never pure silence"],
+    levels:{voice:-6,music:rel?-28:m.mdb,ambience:e.db,sfx:-20}};
+  P.sfx=rel?{why:"Because this is a religious video, leave sound effects out and let the voice lead.",cues:[]}:{why:"Because "+L.toLowerCase()+" videos need sounds that mark moments, not decorate them. Keep them few.",cues:t.f.filter(x=>!/^(No |Stay |Keep the |Real location|Quiet room)/.test(x)).map(x=>({cue:x,where:"",level:-20}))};
+  P.music=rel?{why:"Because this is a religious video, music with instruments is usually avoided.",style:"No music, or a vocal-only nasheed",bpm:"Free",level:-28,tips:["If you use a nasheed, keep it far under the voice","Nature ambience is a good alternative"]}
+    :{why:"Because the mood is "+(MOODL[k.mood]||"calm").toLowerCase()+", the music should match that energy and stay under the voice.",style:m.music,bpm:m.bpm,level:m.mdb,tips:["Keep music low under the hook, a little higher on main points","Fade it out on the call to action","Use copyright-free tracks"]};
+  return P}
+function sanitizeAI(r){
+  const str=(x,n=420)=>typeof x==="string"&&x.trim()?x.trim().slice(0,n):null;
+  const arr=(x,n=7,len=240)=>Array.isArray(x)?x.map(v=>str(v,len)).filter(Boolean).slice(0,n):[];
+  const num=(x,lo,hi)=>{const v=parseFloat(x);return isFinite(v)?clamp(v,lo,hi):null};
+  const o={};if(!r||typeof r!=="object")return o;
+  if(THEME[r.category])o.category=r.category;if(["high","medium","low"].includes(r.confidence))o.confidence=r.confidence;
+  o.seen=str(r.seen,320);if(r.setting==="indoor"||r.setting==="outdoor")o.setting=r.setting;
+  if(ENV[r.location])o.location=r.location;if(LIGHTFIX[r.lighting])o.lighting=r.lighting;if(MOOD[r.mood])o.mood=r.mood;
+  const c=r.cuts||{};o.cuts={why:str(c.why),tips:arr(c.tips)};
+  const k=r.colors||{};o.colors={why:str(k.why),palette:Array.isArray(k.palette)?k.palette.filter(p=>p&&/^#[0-9a-f]{6}$/i.test(String(p.hex||"").trim())).map(p=>({hex:String(p.hex).trim().toUpperCase(),use:str(p.use,80)||""})).slice(0,4):[],grade:arr(k.grade)};
+  const s=r.sound||{},lv=s.levels||{};o.sound={why:str(s.why),ambience:str(s.ambience,260),tips:arr(s.tips),levels:{voice:num(lv.voice,-30,0),music:num(lv.music,-60,0),ambience:num(lv.ambience,-70,0),sfx:num(lv.sfx,-60,0)}};
+  const f=r.sfx||{};o.sfx={why:str(f.why),cues:Array.isArray(f.cues)?f.cues.map(q=>q&&({cue:str(q.cue,80),where:str(q.where,160)||"",level:num(q.level,-60,0)})).filter(q=>q&&q.cue).slice(0,6):null};
+  const mu=r.music||{};o.music={why:str(mu.why),style:str(mu.style,120),bpm:str(String(mu.bpm||""),20),level:num(mu.level,-60,0),tips:arr(mu.tips,4)};
+  return o}
+function mergePlan(A,ai,hints){
+  const k=guessKeys(A,null);["category","location","lighting","mood"].forEach(x=>{if(ai[x])k[x]=ai[x]});
+  if(ai.setting)k.setting=ai.setting;else if(ai.location)k.setting=LOCSET[ai.location];
+  if(hints)["category","location","mood"].forEach(x=>{if(hints[x])k[x]=hints[x]});if(hints&&hints.location)k.setting=LOCSET[hints.location];
+  const P=rulePlan(A,k);P.source="ai";P.confidence=ai.confidence||"medium";if(ai.seen)P.seen=ai.seen;
+  const pick=(sec,f)=>{const s=ai[sec];if(!s)return;f.forEach(x=>{const v=s[x];if(Array.isArray(v)?v.length:v!=null&&v!=="")P[sec][x]=v})};
+  pick("cuts",["why","tips"]);pick("colors",["why","grade"]);if(ai.colors&&ai.colors.palette&&ai.colors.palette.length>=3)P.colors.palette=ai.colors.palette;
+  pick("sound",["why","ambience","tips"]);if(ai.sound&&ai.sound.levels)Object.entries(ai.sound.levels).forEach(([x,v])=>{if(v!=null)P.sound.levels[x]=v});
+  if(ai.sfx){if(ai.sfx.why)P.sfx.why=ai.sfx.why;if(ai.sfx.cues)P.sfx.cues=ai.sfx.cues.map(q=>({cue:q.cue,where:q.where,level:q.level==null?-20:q.level}))}
+  pick("music",["why","style","bpm","level","tips"]);
+  return P}
+const SCHEMA={category:"tut",confidence:"high",seen:"One sentence describing what the frames show.",setting:"indoor",location:"home",lighting:"win",mood:"calm",
+  cuts:{why:"Because ...",tips:["..."]},
+  colors:{why:"Because ...",palette:[{hex:"#FFFFFF",use:"Caption text"},{hex:"#111827",use:"Caption box"},{hex:"#F2B134",use:"Keyword highlight"},{hex:"#2E8A6E",use:"Accent"}],grade:["..."]},
+  sound:{why:"Because ...",ambience:"...",tips:["..."],levels:{voice:-6,music:-24,ambience:-40,sfx:-20}},
+  sfx:{why:"Because ...",cues:[{cue:"Soft click",where:"when each step number appears",level:-22}]},
+  music:{why:"Because ...",style:"...",bpm:"75-90",level:-24,tips:["..."]}};
+function buildPrompt(A,n,h){
+  const fr=A.fr,sp=A.speech,L=[];
+  L.push("You are a senior video editor helping a creator plan the edit of their raw footage. The "+n+" attached images are still frames taken evenly across the clip, in order.");
+  L.push("","MEASUREMENTS FROM THE FILE");
+  L.push("- Length "+fmtDur(A.duration||0)+(A.w?", "+A.w+"x"+A.h+" ("+ratioLabel(A.w,A.h)+")":""));
+  if(fr)L.push("- Picture: average brightness "+Math.round(fr.lum*100)+"%, contrast "+(fr.std<.13?"flat":fr.std>.26?"high":"normal")+", "+Math.round(fr.clip*100)+"% clipped highlights, warm/cool balance "+fr.warm.toFixed(2)+" (positive = warm), background color "+hex(fr.bg)+(fr.dress?", outfit color "+hex(fr.dress):""));
+  if(sp)L.push("- Sound: "+sp.pauses.length+" pauses of 0.5s or more ("+Math.round(sp.pauseTime)+"s total, "+fmtDur(sp.trim)+" can be trimmed), speaking rate "+sp.rate.toFixed(1)+" syllables/sec ("+({slow:"slow",norm:"normal",fast:"fast"})[sp.pace]+"), background noise floor "+Math.round(sp.noise)+" dBFS, voice level "+Math.round(sp.speech)+" dBFS while speaking"+(A.audio&&A.audio.clipWins>3?", the voice clips in "+A.audio.clipWins+" places":"")+(sp.conf==="low"?" (music or noise sits close to the voice, so these are rough)":""));
+  else L.push("- Sound: could not be measured");
+  if(h&&(h.category||h.location||h.mood))L.push("","THE CREATOR CORRECTED YOUR GUESS. Use exactly: "+[h.category?"category = "+h.category:"",h.location?"location = "+h.location:"",h.mood?"mood = "+h.mood:""].filter(Boolean).join(", ")+".");
+  L.push("","CHOOSE KEYS FROM THESE LISTS");
+  L.push("category: "+CATS.map(x=>x[0]+" = "+x[1]).join("; "));
+  L.push("location: "+LOCS.map(x=>x[0]+" = "+x[1]).join("; "));
+  L.push("lighting: "+LIGHTS.map(x=>x[0]+" = "+x[1]).join("; "));
+  L.push("mood: "+MOODS.map(x=>x[0]+" = "+x[1]).join("; "));
+  L.push("","Reply with only one JSON object in exactly this shape (the values here are placeholders):",JSON.stringify(SCHEMA));
+  L.push("","RULES",
+  "- Base everything on what you can actually see in the frames and on the measurements. Name concrete things you see: the wall, the clothing, props, the light source, indoor or outdoor clues.",
+  "- Every \"why\" is one sentence that starts with \"Because\" and gives the real reason: the video type, the colors you see, indoor or outdoor, the measured noise or pace.",
+  "- cuts.tips, colors.grade and sound.tips: 3-5 short, practical instructions each (at most 20 words), specific to this footage.",
+  "- colors.palette: exactly 4 colors as #RRGGBB that work over this footage, each with what it is for. If white text would not contrast with the background, include a caption box color.",
+  "- sound.levels: dB numbers. voice is the peak level (about -6); music, ambience and sfx are their levels under the voice.",
+  "- sfx.cues: 3-5 sound effects tied to moments that happen in this kind of video, each with a level in dB. For religious or awareness videos return an empty list and explain why in sfx.why.",
+  "- confidence: how sure you are about the category.",
+  "- Write in plain, friendly English for creators who may be beginners. Explain any editing term in a few words.");
+  return L.join("\n")}
 
 /* ---------------- state ---------------- */
-const S={a:null,job:0,url:null,lib:[],libRoot:"",playing:null,ac:null,ex:null};
+const S={file:null,url:null,a:null,plan:null,job:0,ctl:null,ex:null,ai:null,imgMax:0,aiOK:false,note:null};
+(async()=>{try{if(window.claude&&typeof claude.use==="function"){const s=await claude.use("sample");if(s){S.ai=s;try{const lim=await s.limits();S.imgMax=lim&&lim.images?lim.images.maxCount:0}catch(e){S.imgMax=0}S.aiOK=S.imgMax>0}}}catch(e){}aiNote()})();
+function aiNote(){const n=$("#aiNote");if(!n)return;n.textContent=S.aiOK?"Claude looks at 6 small still frames on your Claude account. The first time, claude.ai asks you to allow it.":"AI recognition isn't available here, so you'll pick the video type after the measurements. Open this page on claude.ai to let Claude recognize it."}
 
 /* ---------------- hero ---------------- */
 const HERO={win:24,cuts:[],sfx:["whoosh","pop","ding","whoosh","click","riser"]};
@@ -825,18 +851,16 @@ let heroCtx=null,heroOn=true,heroT0=performance.now(),zoomCur=1,lastHit=-1;
 function heroSetup(){
   const sp=S.ex.speech,W=HERO.win;
   HERO.cuts=sp.pauses.filter(p=>p.b<W-.4&&p.a>.6).map(p=>({f:(p.a+p.b)/2/W,a:p.a/W,b:p.b/W,d:p.d}));
-  const ru=$("#ruler");let h="";for(let s=0;s<=W;s++){const x=s/W*100;h+='<i class="tk'+(s%6===0?" maj":"")+'" style="left:'+x+'%"></i>';if(s%6===0&&s<W)h+='<span style="left:'+x+'%">00:'+pad(s)+'</span>'}
-  HERO.cuts.forEach((c,i)=>h+='<i class="mk" data-i="'+i+'" style="left:'+(c.f*100)+'%"></i>');ru.innerHTML=h;
-  let v="",prev=0;HERO.cuts.concat([{a:1,b:1}]).forEach((c,i)=>{v+='<div class="clip" style="left:calc('+(prev*100)+'% + 1px);width:calc('+((c.a-prev)*100)+'% - 2px)">A001_C004</div>';prev=c.b});$("#laneV").innerHTML=v;
-  $("#laneS").innerHTML=HERO.cuts.map((c,i)=>'<span class="sfxc" data-i="'+i+'" style="left:'+(c.f*100-1)+'%">'+HERO.sfx[i%HERO.sfx.length]+'</span>').join("");
+  let h="";for(let s=0;s<=W;s++){const x=s/W*100;h+='<i class="tk'+(s%6===0?" maj":"")+'" style="left:'+x+'%"></i>';if(s%6===0&&s<W)h+='<span style="left:'+x+'%">00:'+pad(s)+'</span>'}
+  HERO.cuts.forEach((c,i)=>h+='<i class="mk" style="left:'+(c.f*100)+'%"></i>');$("#ruler").innerHTML=h;
+  let v="",prev=0;HERO.cuts.concat([{a:1,b:1}]).forEach(c=>{v+='<div class="clip" style="left:calc('+(prev*100)+'% + 1px);width:calc('+((c.a-prev)*100)+'% - 2px)">A001_C004</div>';prev=c.b});$("#laneV").innerHTML=v;
+  $("#laneS").innerHTML=HERO.cuts.map((c,i)=>'<span class="sfxc" style="left:'+(c.f*100-1)+'%">'+HERO.sfx[i%HERO.sfx.length]+'</span>').join("");
   const bg=S.ex.fr.bg,dr=S.ex.fr.dress;$("#pinBg").style.background=hex(bg);$("#pinDr").style.background=hex(dr);$("#pinBgT").textContent="BG "+hex(bg);$("#pinDrT").textContent="Outfit "+hex(dr);
   $("#tlInfo").textContent=HERO.cuts.length+" pauses marked";
-  drawHeroLanes();
-  const cv=$("#scene");heroCtx=cv.getContext("2d");sizeHero();
+  drawHeroLanes();heroCtx=$("#scene").getContext("2d");sizeHero();
   new ResizeObserver(()=>{sizeHero();drawHeroLanes()}).observe($("#heroFrame"));
   new IntersectionObserver(es=>{heroOn=es[0].isIntersecting;if(heroOn&&!RM.matches)requestAnimationFrame(heroFrame)}).observe($(".rig"));
-  if(RM.matches)heroStatic();
-}
+  if(RM.matches)heroStatic()}
 function sizeHero(){const cv=$("#scene"),r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=Math.max(2,Math.round(r.width*d));cv.height=Math.max(2,Math.round(r.height*d));if(RM.matches)heroStatic()}
 function laneCanvas(id){const cv=$(id),r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=Math.max(2,Math.round(r.width*d));cv.height=Math.max(2,Math.round(r.height*d));return[cv.getContext("2d"),cv.width,cv.height,d]}
 function drawHeroLanes(){
@@ -848,331 +872,232 @@ function drawHeroLanes(){
   [c,w,h,d]=laneCanvas("#laneM");c.clearRect(0,0,w,h);
   const lv=[];let cur=.3;for(let x=0;x<=w;x+=2*d){const f=x/w;const inP=HERO.cuts.some(k=>f>=k.a&&f<=k.b);cur+=((inP?.78:.3)-cur)*.22;lv.push([x,cur])}
   c.beginPath();c.moveTo(0,h);lv.forEach(([x,v])=>c.lineTo(x,h-v*(h-4*d)));c.lineTo(w,h);c.closePath();c.fillStyle=tok("--mus");c.globalAlpha=.28;c.fill();c.globalAlpha=1;
-  c.beginPath();lv.forEach(([x,v],i)=>i?c.lineTo(x,h-v*(h-4*d)):c.moveTo(x,h-v*(h-4*d)));c.strokeStyle=tok("--mus");c.lineWidth=1.5*d;c.stroke();
-}
-function heroPaint(p,now,inPause){
-  const cv=$("#scene");const talk=inPause?.25:1;
+  c.beginPath();lv.forEach(([x,v],i)=>i?c.lineTo(x,h-v*(h-4*d)):c.moveTo(x,h-v*(h-4*d)));c.strokeStyle=tok("--mus");c.lineWidth=1.5*d;c.stroke()}
+function heroPaint(p,now,inPause){const cv=$("#scene"),talk=inPause?.25:1;
   paintScene(heroCtx,cv.width,cv.height,{tilt:(Math.sin(now/430)*.016+Math.sin(now/1170)*.01)*talk,dy:Math.sin(now/190)*cv.height*.003*talk,breath:Math.sin(now/1600),zoom:zoomCur});
-  $("#tc").textContent=fmtTC(p*HERO.win);
-}
-function heroMarks(p){let passed=0,newest=-1;HERO.cuts.forEach((k,i)=>{const on=p>=k.f;if(on){passed++;newest=i}});
+  $("#tc").textContent=fmtTC(p*HERO.win)}
+function heroMarks(p){let passed=0,newest=-1;HERO.cuts.forEach((k,i)=>{if(p>=k.f){passed++;newest=i}});
   $$(".mk").forEach((m,i)=>m.classList.toggle("hit",p>=HERO.cuts[i].f));$$(".sfxc").forEach((m,i)=>m.classList.toggle("hit",p>=HERO.cuts[i].f));
-  if(newest!==lastHit&&newest>=0){$("#flCut").textContent="Pause "+HERO.cuts[newest].d.toFixed(1)+"s → cut to 0.3s"}lastHit=newest;return passed}
+  if(newest!==lastHit&&newest>=0)$("#flCut").textContent="Pause "+HERO.cuts[newest].d.toFixed(1)+"s → cut to 0.3s";lastHit=newest;return passed}
 function heroFrame(now){
   if(!heroOn||RM.matches||document.hidden)return;
   const P=11000,t=((now-heroT0)%P)/P,u=Math.min(1,t/.93),p=.72*u+.28*easeIO(u);
   $("#tl").style.setProperty("--p",p.toFixed(4));$("#tl").classList.toggle("reset",t>.95);
-  const passed=heroMarks(t>.97?0:p);const target=passed%2?1.075:1;zoomCur+=(target-zoomCur)*.3;
-  const inPause=HERO.cuts.some(k=>p>=k.a&&p<=k.b);heroPaint(p,now,inPause);
-  requestAnimationFrame(heroFrame)}
-function heroStatic(){if(!heroCtx)return;const p=.55;$("#tl").style.setProperty("--p",p);const passed=heroMarks(p);zoomCur=passed%2?1.075:1;heroPaint(p,0,false)}
+  const passed=heroMarks(t>.97?0:p);zoomCur+=((passed%2?1.075:1)-zoomCur)*.3;
+  heroPaint(p,now,HERO.cuts.some(k=>p>=k.a&&p<=k.b));requestAnimationFrame(heroFrame)}
+function heroStatic(){if(!heroCtx)return;const p=.55;$("#tl").style.setProperty("--p",p);zoomCur=heroMarks(p)%2?1.075:1;heroPaint(p,0,false)}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&heroOn&&!RM.matches)requestAnimationFrame(heroFrame)});
 
 /* ---------------- illustrations ---------------- */
 function ills(){
-  const svg=(b)=>'<svg viewBox="0 0 280 130" aria-hidden="true">'+b+'</svg>';
+  const svg=b=>'<svg viewBox="0 0 280 130" aria-hidden="true">'+b+'</svg>';
   const T=(x,y,t,cl,anch)=>'<text x="'+x+'" y="'+y+'" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" letter-spacing=".5" style="fill:var('+(cl||"--ink-3")+')"'+(anch?' text-anchor="'+anch+'"':'')+'>'+t+'</text>';
-  let b="";const reg=[[84,112],[182,222]];reg.forEach(([a,z])=>{b+='<rect x="'+a+'" y="14" width="'+(z-a)+'" height="100" rx="3" style="fill:var(--cut)" opacity=".13"/><rect x="'+((a+z)/2-4)+'" y="10" width="8" height="8" rx="1.5" transform="rotate(45 '+((a+z)/2)+' 14)" style="fill:var(--cut)"/>'});
-  b+=T(98,124,"0.9s","--cut","middle")+T(202,124,"1.4s","--cut","middle");
-  for(let x=6;x<276;x+=5){const inR=reg.some(([a,z])=>x>a-2&&x<z);const h=inR?2:8+Math.abs(Math.sin(x*.13)+Math.sin(x*.41)*.8)*26;b+='<rect x="'+x+'" y="'+(64-h/2)+'" width="3" height="'+h+'" rx="1.5" style="fill:var(--aud)"/>'}
-  b+='<g class="scan"><rect x="7" y="8" width="2" height="112" style="fill:var(--marker)"/></g>';
-  const I={pause:svg(b)};
-  const wall="#E6DCCB",out="#23314F",ok=contrast([17,24,39],[230,220,203]),bad=contrast([255,255,255],[230,220,203]);
+  const I={};const wall="#E6DCCB",out="#23314F",ok=contrast([17,24,39],[230,220,203]),bad=contrast([255,255,255],[230,220,203]);
   I.color=svg('<rect x="6" y="6" width="168" height="118" rx="8" fill="'+wall+'"/><ellipse cx="50" cy="40" rx="40" ry="28" fill="#FFF8EA" opacity=".6"/><path d="M40 124c2-26 14-40 34-44h32c20 4 32 18 34 44z" fill="'+out+'"/><rect x="83" y="64" width="14" height="20" fill="#A9734F"/><ellipse cx="90" cy="50" rx="17" ry="22" fill="#1D1917"/><ellipse cx="90" cy="56" rx="15" ry="20" fill="#C48D69"/>'+
     '<circle cx="26" cy="40" r="6" fill="'+wall+'" stroke="#fff" stroke-width="2"/><circle cx="92" cy="108" r="6" fill="'+out+'" stroke="#fff" stroke-width="2"/>'+
     '<rect x="186" y="10" width="88" height="52" rx="7" fill="'+wall+'"/><text x="198" y="44" font-family="Onest, sans-serif" font-size="22" font-weight="700" fill="#fff">Aa</text><text x="268" y="32" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#B5372A">'+bad.toFixed(1)+':1</text><text x="268" y="46" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#7A3A30">fails</text>'+
     '<rect x="186" y="68" width="88" height="52" rx="7" fill="'+wall+'"/><text x="198" y="102" font-family="Onest, sans-serif" font-size="22" font-weight="700" fill="#111827">Aa</text><text x="268" y="90" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#1F6B49">'+ok.toFixed(1)+':1</text><text x="268" y="104" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#2F5C46">passes</text>');
-  b="";for(let i=0;i<44;i++){const x=10+i*6,v=Math.exp(-Math.pow((i-25)/9,2))*78+Math.exp(-Math.pow((i-9)/5,2))*26+(i>40?40:0)+6;b+='<rect x="'+x+'" y="'+(108-v)+'" width="4.4" height="'+v+'" rx="1" style="fill:var('+(i>40?"--cut":"--ink-3")+')" opacity="'+(i>40?1:.55)+'"/>'}
-  b+='<line x1="10" y1="109" x2="274" y2="109" style="stroke:var(--line-2)"/>'+T(10,124,"SHADOWS")+T(140,124,"MIDS",0,"middle")+T(274,124,"CLIPPED","--cut","end")+'<line x1="160" y1="10" x2="160" y2="108" style="stroke:var(--accent)" stroke-dasharray="3 3"/>'+T(166,18,"AVG 61%","--accent");
-  I.light=svg(b);
-  b="";[["SLOW",[0,1,2,7,8,13,14,15,21,22],22],["NORMAL",[0,1,2,3,5,6,7,8,9,11,12,13,14,15,17,18,19,20,21,22],62],["FAST",Array.from({length:28},(_,i)=>i),102]].forEach(([l,dots,y],r)=>{
-    if(r===1)b+='<rect x="2" y="'+(y-16)+'" width="276" height="30" rx="7" style="fill:var(--accent-soft)"/>';
-    b+=T(10,y+3,l,r===1?"--accent":"--ink-3");dots.forEach(k=>{const x=74+k*7.4;if(x<272)b+='<circle cx="'+x+'" cy="'+y+'" r="2.8" style="fill:var('+(r===1?"--accent":"--ink-3")+')"/>'})});
-  I.pace=svg(b);
-  b="";const fs=[["9:16",34,60],["4:5",48,60],["1:1",60,60],["16:9",107,60]];let x=8;fs.forEach(([l,w,h],i)=>{const on=i===3;b+='<rect x="'+x+'" y="'+(96-h)+'" width="'+w+'" height="'+h+'" rx="4" style="fill:var('+(on?"--accent-soft":"--panel")+');stroke:var('+(on?"--accent":"--line-2")+')" stroke-width="1.5"/>'+T(x+w/2,114,l,on?"--accent":"--ink-3","middle");x+=w+9});
+  let b="";const fs=[["9:16",34,60],["4:5",48,60],["1:1",60,60],["16:9",107,60]];let x=8;fs.forEach(([l,w,h],i)=>{const on=i===3;b+='<rect x="'+x+'" y="'+(96-h)+'" width="'+w+'" height="'+h+'" rx="4" style="fill:var('+(on?"--accent-soft":"--panel")+');stroke:var('+(on?"--accent":"--line-2")+')" stroke-width="1.5"/>'+T(x+w/2,114,l,on?"--accent":"--ink-3","middle");x+=w+9});
   b+=T(8,22,"1920×1080 · 1:34","--ink-2")+T(272,22,"→ YOUTUBE","--accent","end");I.format=svg(b);
-  b="";[["Smooth Woosh.wav","whoosh"],["USFX - Stomp - 4.wav","impact"],["ui_click_03.mp3","click"],["Riser Reverse.wav","riser"]].forEach(([n,t],i)=>{const y=12+i*28;b+='<rect x="4" y="'+y+'" width="272" height="22" rx="5" style="fill:var(--panel)"/>'+T(14,y+14,n,"--ink-2")+'<rect x="'+(268-t.length*6.6)+'" y="'+(y+4)+'" width="'+(t.length*6.6+4)+'" height="14" rx="3" style="fill:var(--sfx)"/>'+T(270-t.length*6.6,y+14,t,"--sfx-ink")});
-  I.sfx=svg(b);
-  $$("[data-ill]").forEach(el=>el.innerHTML=I[el.dataset.ill]||"");
-}
+  b="";[["CUTS","Jump-cut 14 pauses","--cut"],["COLORS","White on navy box","--clip"],["SOUND","Voice −6 · music −24","--aud"],["SFX","Soft click · −22 dB","--sfx"]].forEach(([k,v,c],i)=>{const y=8+i*29;b+='<rect x="4" y="'+y+'" width="272" height="23" rx="6" style="fill:var(--panel)"/><rect x="12" y="'+(y+8)+'" width="7" height="7" rx="1.5" transform="rotate(45 15.5 '+(y+11.5)+')" style="fill:var('+c+')"/>'+T(28,y+15,k,"--ink-3")+'<text x="268" y="'+(y+15.5)+'" text-anchor="end" font-family="Onest, sans-serif" font-size="10.5" font-weight="600" style="fill:var(--ink)">'+v+'</text>'});
+  I.plan=svg(b);
+  $$("[data-ill]").forEach(el=>el.innerHTML=I[el.dataset.ill]||"")}
 
-/* ---------------- analysis UI ---------------- */
-const STEPS=[["meta","Reading file info"],["frames","Sampling 10 frames"],["audio","Decoding the audio track"],["pauses","Measuring pauses, pace and noise"]];
-function renderProgress(name,size){
-  $("#analysis").innerHTML='<div class="panel-head"><span class="tag live">Analyzing</span><span class="fname">'+esc(name)+'</span><span class="metas"><span class="meta">'+fmtSize(size)+'</span></span></div><div class="prog"><ol>'+STEPS.map(([k,l])=>'<li data-s="'+k+'"><i></i>'+l+'</li>').join("")+'</ol><div class="pbar"><i id="pb"></i></div></div>';
-  $("#analysis").scrollIntoView({behavior:RM.matches?"auto":"smooth",block:"nearest"})}
-function step(k,s){const li=$('.prog li[data-s="'+k+'"]');if(li)li.className=s;const done=$$(".prog li.done,.prog li.fail,.prog li.skip").length;setBar(done/STEPS.length)}
-function setBar(v){const b=$("#pb");if(b)b.style.setProperty("--v",clamp(v,0,1))}
-
-async function handleFootage(file){
-  const my=++S.job;
+/* ---------------- analyzer flow ---------------- */
+function setPane(id){["paneDrop","paneReady","paneBusy","paneDone"].forEach(p=>$("#"+p).hidden=p!==id)}
+function setStep(n){$$("#steps li").forEach((li,i)=>{li.className=i+1<n?"done":i+1===n?"on":""})}
+function metaChips(A){const m=[];if(A.duration)m.push(fmtDur(A.duration));if(A.w)m.push(A.w+"×"+A.h,ratioLabel(A.w,A.h));if(A.size)m.push(fmtSize(A.size));return m.map(x=>'<span class="meta">'+x+'</span>').join("")}
+async function pickFile(file){
+  $("#dropErr").hidden=true;
   const isV=/^video\//.test(file.type)||/\.(mp4|mov|m4v|webm|mkv|avi|mts|m2ts|3gp)$/i.test(file.name);
-  const isA=!isV&&(/^audio\//.test(file.type)||/\.(mp3|wav|m4a|aac|ogg|oga|flac|aif|aiff|opus)$/i.test(file.name));
-  if(!isV&&!isA){$("#footState").innerHTML='<span>“'+esc(file.name)+'” isn\'t a video or audio file. Try MP4, MOV, WebM, MP3, WAV or M4A.</span>';return}
-  if(S.url)URL.revokeObjectURL(S.url);S.url=URL.createObjectURL(file);
-  $("#footState").innerHTML='Loaded <b>'+esc(file.name)+'</b>';
-  const A={sample:false,name:file.name,size:file.size,kind:isV?"video":"audio",url:S.url,file,notes:[]};
-  renderProgress(file.name,file.size);step("meta","run");
-  if(isV){
-    try{const vr=await readVideo(S.url,f=>{setBar(.25+f*.25)});if(my!==S.job)return;
-      Object.assign(A,{duration:vr.duration,w:vr.w,h:vr.h,frames:vr.frames});A.fr=vr.stats.length?summarizeFrames(vr.stats):null;step("meta","done");step("frames",vr.stats.length?"done":"fail");
-      if(!vr.stats.length)A.notes.push(["bad","This browser couldn't decode the picture in this file (common with iPhone HEVC .MOV). Pauses and audio are still measured. For frame colors and light, export a quick H.264 MP4 proxy and drop that instead."])}
-    catch(e){if(my!==S.job)return;step("meta","fail");step("frames","fail");A.notes.push(["bad","This browser couldn't open the video stream. The audio track can still be read below. For frame analysis, export an H.264 MP4 proxy and drop that instead."])}
-  }else{step("meta","done");step("frames","skip")}
-  step("audio","run");
-  if(file.size>MAXA){A.audioErr="This file is over 900 MB, so the audio wasn't read. Export the audio as MP3 or WAV and add it here to get the pause map.";step("audio","fail");step("pauses","fail")}
-  else{try{A.audio=await readAudio(file);if(my!==S.job)return;step("audio","done");A.speech=speechStats(A.audio);step("pauses",A.speech?"done":"fail");if(!A.duration)A.duration=A.audio.dur}
-    catch(e){if(my!==S.job)return;A.audioErr="Couldn't read the audio track in this browser. Add an MP3 or WAV export of the audio to get the pause map.";step("audio","fail");step("pauses","fail")}}
-  if(A.speech&&A.speech.conf==="low")A.notes.push(["warn","Music or background noise sits close to the voice level, so pauses are hard to separate. The pause map may miss some, and pace wasn't filled in."]);
-  await new Promise(r=>setTimeout(r,280));if(my!==S.job)return;
-  S.a=A;renderAnalysis(true);applyToForm(A);build(true);
-}
-async function addAudioOnly(file){
-  if(!S.a||S.a.sample)return handleFootage(file);
-  const A=S.a;$("#footState").innerHTML='Audio from <b>'+esc(file.name)+'</b>';
-  try{A.audio=await readAudio(file);A.speech=speechStats(A.audio);A.audioErr=null;if(!A.duration)A.duration=A.audio.dur;A.notes=A.notes.filter(n=>n[0]!=="warn");if(A.speech&&A.speech.conf==="low")A.notes.push(["warn","Music or background noise sits close to the voice level, so pauses are hard to separate."])}
-  catch(e){A.audioErr="That audio file couldn't be read either. Try a WAV export."}
-  renderAnalysis(true);applyToForm(A);build(true)}
+  if(!isV){$("#dropErr").textContent="“"+file.name+"” isn't a video file. Choose an MP4, MOV or WebM.";$("#dropErr").hidden=false;return}
+  S.job++;if(S.url)URL.revokeObjectURL(S.url);S.file=file;S.url=URL.createObjectURL(file);
+  $("#readyName").textContent=file.name;$("#readyPlayer").innerHTML='<video src="'+S.url+'" controls playsinline preload="metadata"></video>';
+  const pre={size:file.size};$("#readyMeta").innerHTML=metaChips(pre);
+  setPane("paneReady");setStep(1);aiNote();
+  const v=$("#readyPlayer video");v.addEventListener("loadedmetadata",()=>{$("#readyMeta").innerHTML=metaChips({size:file.size,duration:isFinite(v.duration)?v.duration:0,w:v.videoWidth,h:v.videoHeight})},{once:true})}
+const STEPS=[["read","Reading your video"],["frames","Taking snapshots"],["audio","Listening for pauses and noise"],["think","Writing your plan"]];
+function stepUI(k,s,extra){const li=$('#progList li[data-s="'+k+'"]');if(li){li.className=s;if(extra!=null){let sm=li.querySelector("small");if(!sm){sm=document.createElement("small");li.appendChild(sm)}sm.textContent=extra}}
+  const done=$$("#progList li.done,#progList li.fail,#progList li.skip").length;setBar(done/STEPS.length)}
+function setBar(v){$("#pb").style.setProperty("--v",clamp(v,0,1))}
+async function analyze(){
+  if(!S.file)return;const my=++S.job,file=S.file;
+  setPane("paneBusy");setStep(2);$("#busyName").textContent="Analyzing "+file.name;
+  $("#progList").innerHTML=STEPS.map(([k,l])=>'<li data-s="'+k+'"><i></i>'+l+'</li>').join("");setBar(.04);
+  const A={sample:false,name:file.name,size:file.size,url:S.url,frames:[],ai:[],notes:[]};
+  stepUI("read","run");
+  try{stepUI("frames","run");const vr=await readVideo(S.url,f=>setBar(.06+f*.3));if(my!==S.job)return;
+    Object.assign(A,{duration:vr.duration,w:vr.w,h:vr.h,frames:vr.frames,ai:vr.ai});A.fr=vr.stats.length?summarizeFrames(vr.stats):null;A.poster=vr.frames[Math.min(2,vr.frames.length-1)]?.src||null;
+    stepUI("read","done");stepUI("frames",vr.stats.length?"done":"fail",vr.stats.length?vr.frames.length+" taken":"not readable")}
+  catch(e){if(my!==S.job)return;stepUI("read","fail");stepUI("frames","fail","not readable")}
+  if(!A.fr)A.notes.push("This browser couldn't decode the picture (common with iPhone HEVC .MOV files), so colors and light weren't measured. Export a quick H.264 MP4 for the full analysis.");
+  stepUI("audio","run");
+  if(file.size>MAXA){A.notes.push("The file is over 900 MB, so the sound wasn't measured.");stepUI("audio","fail","too large")}
+  else{try{A.audio=await readAudio(file);if(my!==S.job)return;A.speech=speechStats(A.audio);if(!A.duration)A.duration=A.audio.dur;stepUI("audio","done",A.speech?A.speech.pauses.length+" pauses":"")}
+    catch(e){if(my!==S.job)return;A.notes.push("The sound track couldn't be read in this browser, so pauses aren't listed.");stepUI("audio","fail","not readable")}}
+  if(A.speech&&A.speech.conf==="low")A.notes.push("Music or background noise sits close to the voice, so the pause count is rough.");
+  const P=await planFor(A,null,my);if(my!==S.job||!P)return;
+  S.a=A;S.plan=P;setBar(1);await new Promise(r=>setTimeout(r,250));if(my!==S.job)return;
+  $("#doneThumb").src=A.poster||"";$("#doneThumb").hidden=!A.poster;$("#doneName").textContent=A.name;$("#doneMeta").innerHTML=metaChips(A);
+  setPane("paneDone");setStep(3);
+  renderResult(true);$("#result").scrollIntoView({behavior:RM.matches?"auto":"smooth",block:"start"})}
+async function planFor(A,hints,my){
+  S.note=null;
+  if(S.aiOK&&A.ai&&A.ai.length){
+    stepUI("think","run","Claude is looking · 0s");$("#stop").hidden=false;const t0=Date.now();const tick=setInterval(()=>stepUI("think","run","Claude is looking · "+Math.round((Date.now()-t0)/1000)+"s"),1000);
+    S.ctl=new AbortController();
+    try{const imgs=A.ai.slice(0,Math.max(1,Math.min(6,S.imgMax)));const r=await S.ai.json(buildPrompt(A,imgs.length,hints),{images:imgs,modelTier:"default",signal:S.ctl.signal});
+      clearInterval(tick);$("#stop").hidden=true;if(my!==S.job)return null;const ai=sanitizeAI(r);
+      if(!ai.category&&!(ai.cuts&&ai.cuts.tips.length))throw{code:"invalid_json"};
+      stepUI("think","done",Math.round((Date.now()-t0)/1000)+"s");return mergePlan(A,ai,hints)}
+    catch(e){clearInterval(tick);$("#stop").hidden=true;if(my!==S.job)return null;const code=e&&e.code;
+      if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"].includes(code))S.aiOK=false;
+      S.note=({not_granted:"Claude wasn't allowed for this page, so this plan comes from the measurements only.",sampling_disabled:"Claude isn't available on this account, so this plan comes from the measurements only.",rate_limited:"You've reached your Claude usage limit for now, so this plan comes from the measurements only. Try Update plan again later.",cancelled:"You stopped the AI step, so this plan comes from the measurements only."})[code]||"Claude couldn't finish the video check this time, so this plan comes from the measurements only. Press Update plan to try again.";
+      stepUI("think","fail","measurements only")}}
+  else{stepUI("think","run");S.note=!A.ai||!A.ai.length?"The picture couldn't be read, so this plan comes from the sound and your choices.":"AI recognition only works when this page is opened on claude.ai, so this plan comes from the measurements only.";stepUI("think","done")}
+  const P=rulePlan(A,guessKeys(A,hints));P.needsType=!hints||!hints.category;return P}
 
-function renderAnalysis(anim){
-  const A=S.a,el=$("#analysis"),metas=[];
-  if(A.duration)metas.push(fmtDur(A.duration));if(A.w)metas.push(A.w+"×"+A.h,ratioLabel(A.w,A.h));metas.push(fmtSize(A.size));
-  let h='<div class="panel-head"><span class="tag '+(A.sample?"ex":"live")+'">'+(A.sample?"Example":"Your footage")+'</span><span class="fname" title="'+esc(A.name)+'">'+esc(A.name)+'</span><span class="metas">'+metas.map(m=>'<span class="meta">'+m+'</span>').join("")+'</span>'+(A.sample?"":'<button class="btn ghost btn-sm" type="button" data-act="example">Back to example</button>')+'</div>';
-  (A.notes||[]).forEach(([k,t])=>h+='<div class="alert '+(k==="bad"?"bad":"")+'"><p>'+t+'</p></div>');
-  let media;
-  if(A.sample)media='<img src="'+A.poster+'" alt="Example frame: a speaker in a navy top against a beige wall"><span class="lbl">Example footage</span>';
-  else if(A.kind==="video")media='<video id="player" src="'+A.url+'" controls playsinline preload="metadata"></video>';
-  else media='<div class="audph">'+ICON.wave+'<span>Audio file · no picture to analyze</span><audio id="player" src="'+A.url+'" controls preload="metadata"></audio></div>';
-  let pv='<div class="player">'+media+'</div>';
-  if(A.frames&&A.frames.length)pv+='<div class="strip" aria-label="Sampled frames">'+A.frames.map((f,i)=>'<figure style="--i:'+i+'"><img src="'+f.src+'" alt="Frame at '+fmtT(f.t)+'"><figcaption>'+fmtT(f.t)+'</figcaption></figure>').join("")+'</div>';
-  if(A.fr)pv+='<div class="pal" title="Main colors in the frame">'+A.fr.pal.map(c=>'<i style="background:'+hex(c)+'"></i>').join("")+'</div>';
-  const rows=[];
-  if(A.w){const r=ratioLabel(A.w,A.h);rows.push(["Format",r+" · "+A.w+"×"+A.h,"Sets the platform preset and caption safe zones."])}
-  if(A.duration)rows.push(["Length",fmtDur(A.duration),$('#len option[value="'+lenOf(A.duration)+'"]').textContent+" structure"]);
-  if(A.fr){const f=A.fr;rows.push(["Light",$('#light option[value="'+f.light+'"]').textContent,"Brightness "+Math.round(f.lum*100)+"%, contrast "+(f.std<.13?"flat":f.std>.26?"high":"normal")+(f.clip>.02?", "+Math.round(f.clip*100)+"% clipped":"")]);
-    rows.push(["Background",'<i class="swi" style="background:'+hex(f.bg)+'"></i>'+hex(f.bg),"Sampled from the edges of each frame"]);
-    if(f.dress)rows.push(["Outfit",'<i class="swi" style="background:'+hex(f.dress)+'"></i>'+hex(f.dress),"Sampled from the lower middle of each frame"])}
-  if(A.speech){const s=A.speech,k=["slow","norm","fast"].indexOf(s.pace);rows.push(["Pace",s.conf==="low"?"Unclear":({slow:"Slow",norm:"Normal",fast:"Fast"})[s.pace]+'<span class="pace" aria-hidden="true">'+[0,1,2].map(i=>'<span class="'+(i===k&&s.conf!=="low"?"on":"")+'"></span>').join("")+'</span>',s.rate.toFixed(1)+" syllables/sec · "+Math.round(s.pauseRatio*100)+"% of the talk is pauses"])}
-  if(!A.fr&&!A.sample&&A.kind==="video")rows.push(["Picture","Not read","Frame colors and light need a decodable video stream"]);
-  const det='<dl>'+rows.map(([l,v,n])=>'<div class="drow"><dt>'+l+'</dt><dd><div class="v">'+v+'</div><div class="n">'+n+'</div></dd></div>').join("")+'</dl>';
-  h+='<div class="pbody"><div class="pv">'+pv+'</div><div class="det">'+det+'</div></div>';
-  if(A.speech){const s=A.speech;
-    h+='<div class="pmap"><div class="pm-head"><h3>Pause map</h3><div class="legend"><span><i style="background:var(--aud)"></i>Voice</span><span><i style="background:var(--cut);opacity:.35"></i>Pause ≥ 0.5s</span><span><i style="background:var(--ink-3);opacity:.35"></i>Dead air at start/end</span></div></div>'+
-    '<div class="pm-wrap" id="pmWrap"><canvas id="pmap" aria-label="Waveform of the voice track with '+s.pauses.length+' pauses highlighted"></canvas></div>'+
-    '<div class="stats"><div><b>'+s.pauses.length+'</b><span>Pauses ≥ 0.5s</span></div><div><b>'+fmtDur(s.trim)+'</b><span>Time you can trim</span></div><div><b>'+(s.rate?s.rate.toFixed(1):"–")+'</b><span>Syllables / sec</span></div><div><b>'+Math.round(s.noise)+'</b><span>Noise floor dBFS</span></div><div><b>'+Math.round(s.speech)+'</b><span>Voice level dBFS</span></div></div></div>'}
-  else if(A.audioErr)h+='<div class="alert bad" style="margin-bottom:20px"><p>'+A.audioErr+'</p><button class="btn ghost btn-sm" type="button" data-act="addaud">Add audio file</button></div>';
+/* ---------------- result ---------------- */
+function capParts(pal){const box=pal.find(p=>/box|background|outline/i.test(p.use)),txt=pal.find(p=>p!==box&&/caption|text|main/i.test(p.use))||pal.find(p=>p!==box),acc=pal.find(p=>p!==box&&p!==txt)||txt;return{box,txt,acc}}
+function measuredColor(A){const fr=A.fr;if(!fr)return[];const L=[],ev=clamp(Math.log2(.45/Math.max(fr.lum,.02)),-1.5,1.5);
+  L.push("Average brightness "+Math.round(fr.lum*100)+"%, contrast "+(fr.std<.13?"flat":fr.std>.26?"high":"normal")+(fr.clip>.02?", "+Math.round(fr.clip*100)+"% of the frame clipped":"")+".");
+  if(Math.abs(ev)>=.25)L.push("Exposure: "+(ev>0?"raise":"lower")+" by about "+Math.abs(ev).toFixed(1)+" EV before grading.");
+  if(fr.warm>.12)L.push("The footage runs warm. Cool the white balance by about 300-600K first.");else if(fr.warm<-.05)L.push("The footage runs cool. Warm it by about 300K so skin doesn't look grey.");
+  if(fr.cast>.1)L.push("Left and right of the frame have different color casts. Balance on the face, then fix the background with a soft mask.");
+  return L}
+function measuredSound(A){const sp=A.speech;if(!sp)return[];const L=[],nf=sp.noise,lv=nf>-42?"high":nf>-55?"moderate":"low",g=Math.round(-14-sp.speech),pk=20*Math.log10(Math.max(A.audio.peak,1e-6));
+  L.push("Background noise "+Math.round(nf)+" dBFS ("+lv+"). "+(lv==="high"?"Run noise reduction before anything else.":lv==="moderate"?"A light noise reduction pass will clean it.":"Clean recording, so keep processing light."));
+  L.push("Voice sits around "+Math.round(sp.speech)+" dBFS while speaking. "+(Math.abs(g)<2?"That's already close to −14 LUFS.":"Add about "+(g>0?"+":"")+g+" dB of gain to land near −14 LUFS"+(g>0&&pk+g>-1?", with a limiter at −1 dB so peaks don't clip.":".")));
+  if(A.audio.clipWins>3)L.push("The voice clips in about "+A.audio.clipWins+" places. Run a de-clip tool before adding gain.");
+  return L}
+const li=a=>"<ul class=\"do\">"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
+const MS='<span class="ms">Measured</span>';
+function sec(i,key,c,ico,title,body,wide){return'<article class="sec'+(wide?" wide":"")+'" style="--c:var('+c+');--i:'+i+'"><div class="sec-h"><span class="ico">'+ico+'</span><div><p class="k">'+pad(i)+' · '+key+'</p><h3>'+title+'</h3></div></div>'+body+'</article>'}
+const whyBox=t=>'<div class="why"><b>Why</b><p>'+esc(t)+'</p></div>';
+function opts(list,sel){return list.map(x=>'<option value="'+x[0]+'"'+(x[0]===sel?" selected":"")+'>'+esc(x[1])+'</option>').join("")}
+function renderResult(anim){
+  const A=S.a,P=S.plan,ex=!!A.sample,el=$("#result"),L=CATL[P.category],pk=platOf(A),pl=PLAT[pk],out=P.setting==="outdoor";
+  const an=/^[aeiou]/i.test(L)?"an":"a";
+  let h='<div class="res-head"><div><p class="eyebrow"><span class="tag '+(ex?"ex":"live")+'">'+(ex?"Example":"Your plan")+'</span>'+(ex?"Upload your clip above to get yours":esc(A.name))+'</p><h2>Your edit plan</h2></div><div class="btn-row"><button class="btn" type="button" data-act="copy">'+ICON.copy+'Copy plan</button><span class="msg" id="copyMsg" role="status"></span></div></div>';
+  if(S.note&&!ex)h+='<div class="alert"><p>'+esc(S.note)+'</p></div>';
+  (A.notes||[]).forEach(n=>h+='<div class="alert"><p>'+esc(n)+'</p></div>');
+  const media=ex?'<img src="'+A.poster+'" alt="Example frame: a speaker in a navy shirt against a beige wall"><span class="lbl">Example footage</span>':'<video id="player" src="'+A.url+'" controls playsinline preload="metadata"></video>';
+  const strip=A.frames&&A.frames.length?'<div class="strip" aria-label="Snapshots from the clip">'+A.frames.map((f,i)=>'<img style="--i:'+i+'" src="'+f.src+'" alt="Snapshot at '+fmtT(f.t)+'">').join("")+'</div>':"";
+  const ai=P.source==="ai",title=ai||!P.needsType?'This is '+an+' <em>'+esc(L)+'</em> video':'Video type: <em>pick below</em>';
+  const facts=[["Setting",(out?"Outdoor":"Indoor")+" · "+(LOCL[P.location]||"")],["Light",LIGHTL[P.lighting]||""],["Mood",MOODL[P.mood]||""],["Platform",pl.n]];
+  if(A.duration)facts.push(["Length",fmtDur(A.duration)]);
+  const fixOpen=!ai&&P.needsType&&!ex;
+  h+='<div class="verdict"><div class="v-media"><div class="player">'+media+'</div>'+strip+'</div><div class="v-text">'+
+    '<p class="v-k">'+(ai?'Claude watched '+(ex?6:Math.min(6,A.ai.length))+' moments':'From the measurements')+(P.confidence?'<span class="conf'+(P.confidence==="low"?" low":"")+'">'+(P.confidence==="high"?"Sure":P.confidence==="medium"?"Fairly sure":"Not sure")+'</span>':'')+'</p>'+
+    '<h3 class="v-title">'+title+'</h3><p class="v-seen">'+esc(P.seen||"")+'</p>'+
+    '<div class="facts">'+facts.map(([k,v])=>'<div class="fact"><span>'+k+'</span>'+esc(v)+'</div>').join("")+'</div>'+
+    '<details class="fix"'+(fixOpen?" open":"")+'><summary>'+(fixOpen?"Pick your video type":"Not right? Change it")+'</summary><div class="fix-grid"><label>Video type<select id="oCat">'+opts(CATS,P.category)+'</select></label><label>Location<select id="oLoc">'+opts(LOCS,P.location)+'</select></label><label>Mood<select id="oMood">'+opts(MOODS,P.mood)+'</select></label></div><div class="btn-row"><button class="btn btn-sm" type="button" data-act="update">Update plan</button><span class="fine" id="updMsg"></span></div></details>'+
+    '</div></div>';
+  let i=0,s="";
+  // cuts
+  const sp=A.speech;let meas="";
+  if(sp){meas='<p class="sub-h">From your footage</p><div class="mini"><div><b>'+sp.pauses.length+'</b><span>Pauses to cut</span></div><div><b>'+fmtDur(sp.trim)+'</b><span>Time saved</span></div><div><b>'+(sp.rate?sp.rate.toFixed(1):"–")+'</b><span>Syllables / sec</span></div></div>'+
+    '<div class="pm-wrap" id="pmWrap"><canvas id="pmap" aria-label="Sound waveform with '+sp.pauses.length+' pauses highlighted"></canvas></div><div class="legend"><span><i style="background:var(--aud)"></i>Voice</span><span><i style="background:var(--cut);opacity:.4"></i>Pause to cut</span><span><i style="background:var(--ink-3);opacity:.35"></i>Dead air</span></div>'+
+    (sp.pauses.length?'<details class="cutlist"><summary>Show all '+sp.pauses.length+' cut points</summary><div class="btn-row" style="margin-top:10px"><button class="btn ghost btn-sm" type="button" data-act="copycuts">Copy cut list</button><span class="fine" id="cutMsg"></span>'+(ex?'':'<span class="fine">Click a row to jump there</span>')+'</div><div class="cuts" id="cutTable"><table><thead><tr><th>#</th><th>From</th><th>To</th><th>Length</th><th>Do</th></tr></thead><tbody>'+sp.pauses.map((x,n)=>'<tr class="'+(ex?"":"go")+'" data-t="'+x.a.toFixed(2)+'"><td>'+pad(n+1)+'</td><td>'+fmtT(x.a)+'</td><td>'+fmtT(x.b)+'</td><td class="'+(x.d>=2?"long":"")+'">'+x.d.toFixed(1)+'s</td><td>'+(x.d>=2?"Check for a retake":"Trim to 0.3s")+'</td></tr>').join("")+'</tbody></table></div></details>':'')}
+  else meas='<p class="sub-h">From your footage</p><p class="fine">The sound wasn\'t measured, so pauses aren\'t listed.</p>';
+  const cutExtra=sp?[MS+"Trimming the "+sp.pauses.length+" pauses takes the talk from "+fmtDur(sp.active)+" to about "+fmtDur(sp.active-sp.trim)+"."+(sp.head>.8||sp.tail>.8?" Also cut "+sp.head.toFixed(1)+"s of dead air at the start and "+sp.tail.toFixed(1)+"s at the end.":"")]:[];
+  s+=sec(++i,"Cuts",'--cut',ICON.cut,"Cuts to use",'<div class="two"><div>'+whyBox(P.cuts.why)+li(P.cuts.tips.map(esc).concat(cutExtra))+'</div><div>'+meas+'</div></div>',true);
+  // colors
+  const pal=P.colors.palette,cp=capParts(pal),poster=A.poster;
+  const capTxt=(THEME[P.category]||THEME.edu).cap.replace(/<k>(.*?)<\/k>/,(m,x)=>'<span style="color:'+cp.acc.hex+'">'+esc(x)+'</span>');
+  const boxStyle=cp.box&&!/outline/i.test(cp.box.use)?"background:"+cp.box.hex+"D9;":"text-shadow:0 0 3px "+(cp.box?cp.box.hex:"#000")+",0 0 2px "+(cp.box?cp.box.hex:"#000")+";";
+  let cprev=poster?'<div class="cprev" style="background-image:url('+poster+')"><span class="lbl">Caption preview on your frame</span><div class="cap" style="'+boxStyle+'color:'+cp.txt.hex+'">'+capTxt+'</div></div>':"";
+  let contrastLine="";if(A.fr&&cp.txt){const bgc=cp.box&&!/outline/i.test(cp.box.use)?rgbOf(cp.box.hex):A.fr.bg,r=contrast(rgbOf(cp.txt.hex),bgc),raw=contrast(rgbOf(cp.txt.hex),A.fr.bg);contrastLine=MS+"Caption text measures "+r.toFixed(1)+":1 "+(cp.box&&bgc!==A.fr.bg?"on the box":"on your background")+(r>=4.5?" (easy to read)":" (too low, add a box)")+(cp.box&&bgc!==A.fr.bg?". Without the box it would be "+raw.toFixed(1)+":1.":".")}
+  s+=sec(++i,"Colors",'--clip',ICON.color,"Color combination",whyBox(P.colors.why)+cprev+'<div class="palette">'+pal.map(p=>'<div class="pt"><i style="background:'+p.hex+'"></i><div><code>'+p.hex+'</code>'+esc(p.use)+'</div></div>').join("")+'</div>'+(contrastLine?'<p class="fine" style="margin-top:10px;font-family:var(--f-body);font-size:14px;color:var(--ink-2)">'+contrastLine+'</p>':'')+'<p class="sub-h">Color grade</p>'+li(P.colors.grade.map(esc).concat(measuredColor(A).map(x=>MS+x))));
+  // sound
+  const lv=P.sound.levels,mt=[["Voice",lv.voice,"--aud","peak"],["Music",lv.music,"--mus"],["Ambience",lv.ambience,"--ink-3"],["SFX",lv.sfx,"--sfx"]];
+  s+=sec(++i,"Sound",'--aud',ICON.sound,out?"Sound for an outdoor shoot":"Sound for an indoor shoot",whyBox(P.sound.why)+'<div class="meters">'+mt.map(([n,v,c,x])=>'<div class="meter" style="--mc:var('+c+')"><span>'+n+'</span><span class="track"><i style="--v:'+((anim&&!RM.matches)?0:clamp((v+60)/60,0,1).toFixed(3))+'" data-v="'+clamp((v+60)/60,0,1).toFixed(3)+'"></i></span><b>'+fmtDb(v)+'</b></div>').join("")+'</div><div class="scale"><span>−60</span><span>−30</span><span>0 dB</span></div>'+
+    '<p style="margin-bottom:6px">'+esc(P.sound.ambience)+'</p>'+li(P.sound.tips.map(esc).concat(measuredSound(A).map(x=>MS+x))));
+  // sfx
+  const cues=P.sfx.cues||[];
+  s+=sec(++i,"SFX",'--sfx',ICON.sfx,"SFX for this video",whyBox(P.sfx.why)+(cues.length?'<div class="cues">'+cues.map((q,n)=>'<div class="cue"><span class="n">'+(n+1)+'</span><div><strong>'+esc(q.cue)+'</strong>'+(q.where?'<span>'+esc(q.where)+'</span>':'')+'</div><em>'+fmtDb(q.level)+'</em></div>').join("")+'</div><p class="fine" style="margin-top:10px">Keep it to one sound every 5-8 seconds at most. Too many SFX make a talking head feel cheap.</p>':'<p class="muted">No sound effects for this video.</p>'));
+  // music
+  s+=sec(++i,"Music",'--mus',ICON.music,"Music",whyBox(P.music.why)+'<div class="kv"><div><span>Style</span><b>'+esc(P.music.style)+'</b></div><div><span>Tempo</span><b>'+esc(P.music.bpm)+(/\d/.test(P.music.bpm)?" BPM":"")+'</b></div><div><span>Level</span><b>'+fmtDb(P.music.level)+' under voice</b></div></div>'+li(P.music.tips.map(esc)));
+  // export
+  s+=sec(++i,"Export",'--g2',ICON.exp,"Structure and export",'<div class="kv five"><div><span>Platform</span><b>'+esc(pl.n)+'</b></div><div><span>Export</span><b>'+esc(pl.ex)+'</b></div><div><span>Captions</span><b>'+esc(pl.cap)+'</b></div></div>'+li([esc(pl.hook),esc(LEN[lenOf(A.duration||60)])].concat(A.duration&&sp?[MS+"Raw length "+fmtDur(A.duration)+", about "+fmtDur(A.duration-sp.trim-sp.head-sp.tail)+" after cutting pauses and dead air."]:[])),true);
+  h+='<div class="sections'+(anim&&!RM.matches?" anim":"")+'" id="secs">'+s+'</div><div class="end"><button class="btn ghost" type="button" data-act="copy">'+ICON.copy+'Copy plan</button>'+(ex?'<a class="btn" href="#analyze">Analyze your own video</a>':'<button class="btn" type="button" data-act="another">Analyze another video</button>')+'</div>';
   el.innerHTML=h;
-  $("#filled").innerHTML=A.sample?'<span class="tag ex">Example</span>Filled from the example footage. Upload yours in Stage 01 to replace it.':'<span class="tag live">Your footage</span>Filled from '+esc(A.name)+'. Marked fields were detected.';
   drawPauseMap(anim);
-}
-function lenOf(d){return d<60?"s":d<300?"m":d<900?"l":"xl"}
+  if(anim&&!RM.matches)setTimeout(()=>$$(".meter .track i").forEach(x=>x.style.setProperty("--v",x.dataset.v)),350)}
 
 let pmCols=null;
 function drawPauseMap(anim){
   const A=S.a;if(!A||!A.speech)return;const cv=$("#pmap");if(!cv)return;
-  const box=$("#pmWrap"),d=Math.min(2,devicePixelRatio||1),w=Math.round(box.clientWidth*d),h=Math.round(box.clientHeight*d);cv.width=w;cv.height=h;
-  const c=cv.getContext("2d"),db=A.audio.db,hop=A.audio.hop,sp=A.speech,dur=db.length*hop;
-  const K={aud:tok("--aud"),cut:tok("--cut"),ink3:tok("--ink-3"),line:tok("--line"),ink2:tok("--ink-2")};
-  const top=22*d,H=h-top-2*d,bw=2*d,gp=1*d,cols=Math.max(1,Math.floor(w/(bw+gp))),lo=sp.noise-3,hi=Math.max(sp.p95+2,lo+12);
+  const box=$("#pmWrap"),d=Math.min(2,devicePixelRatio||1),w=Math.round(box.clientWidth*d),h=Math.round(box.clientHeight*d);if(w<4)return;cv.width=w;cv.height=h;
+  const c=cv.getContext("2d"),db=A.audio.db,sp=A.speech,dur=db.length*A.audio.hop;
+  const K={aud:tok("--aud"),cut:tok("--cut"),ink3:tok("--ink-3"),line:tok("--line")};
+  const top=20*d,H=h-top-2*d,bw=2*d,gp=1*d,cols=Math.max(1,Math.floor(w/(bw+gp))),lo=sp.noise-3,hi=Math.max(sp.p95+2,lo+12);
   const vals=new Float32Array(cols);for(let i=0;i<cols;i++){const f0=Math.floor(i/cols*db.length),f1=Math.max(f0+1,Math.floor((i+1)/cols*db.length));let mx=-120;for(let f=f0;f<f1;f++)if(db[f]>mx)mx=db[f];vals[i]=clamp((mx-lo)/(hi-lo),0,1)}
-  pmCols={w,d,dur};
-  const steps=[1,2,5,10,15,30,60,120,300,600,900,1800];const st=steps.find(s=>dur/s<=w/d/80)||3600;
-  const X=t=>t/dur*w;
-  const draw=k=>{c.clearRect(0,0,w,h);
-    c.font=500*1+" "+(10*d)+"px JetBrains Mono, monospace";c.textBaseline="top";
-    for(let t=0;t<=dur;t+=st){const x=Math.round(X(t));c.fillStyle=K.line;c.fillRect(x,top-6*d,1*d,6*d);c.fillStyle=K.ink3;if(x<w-30*d)c.fillText(fmtDur(t),x+3*d,2*d)}
-    c.fillStyle=K.line;c.fillRect(0,top-1*d,w,1*d);
-    c.save();c.beginPath();c.rect(0,0,w*k,h);c.clip();
+  pmCols={dur};const st=[1,2,5,10,15,30,60,120,300,600,900,1800].find(s=>dur/s<=w/d/70)||3600,X=t=>t/dur*w;
+  const draw=k=>{c.clearRect(0,0,w,h);c.font="500 "+(10*d)+"px JetBrains Mono, monospace";c.textBaseline="top";
+    for(let t=0;t<=dur;t+=st){const x=Math.round(X(t));c.fillStyle=K.line;c.fillRect(x,top-6*d,d,6*d);c.fillStyle=K.ink3;if(x<w-30*d)c.fillText(fmtDur(t),x+3*d,0)}
+    c.fillStyle=K.line;c.fillRect(0,top-d,w,d);c.save();c.beginPath();c.rect(0,0,w*k,h);c.clip();
     c.fillStyle=K.ink3;c.globalAlpha=.18;if(sp.head>0)c.fillRect(0,top,X(sp.head),H);if(sp.tail>0)c.fillRect(X(dur-sp.tail),top,X(sp.tail),H);
     c.fillStyle=K.cut;c.globalAlpha=.16;sp.pauses.forEach(p=>c.fillRect(X(p.a),top,Math.max(1,X(p.d)),H));c.globalAlpha=1;
-    c.fillStyle=K.aud;for(let i=0;i<cols;i++){const bh=Math.max(1*d,vals[i]*H*.94);c.fillRect(i*(bw+gp),top+(H-bh)/2,bw,bh)}
-    c.fillStyle=K.cut;sp.pauses.forEach(p=>{const x=X((p.a+p.b)/2),s=3.5*d;c.beginPath();c.moveTo(x,top-s*1.2);c.lineTo(x+s,top);c.lineTo(x,top+s*1.2);c.lineTo(x-s,top);c.closePath();c.fill()});
-    c.restore()};
+    c.fillStyle=K.aud;for(let i=0;i<cols;i++){const bh=Math.max(d,vals[i]*H*.94);c.fillRect(i*(bw+gp),top+(H-bh)/2,bw,bh)}
+    c.fillStyle=K.cut;sp.pauses.forEach(p=>{const x=X((p.a+p.b)/2),s=3.5*d;c.beginPath();c.moveTo(x,top-s*1.2);c.lineTo(x+s,top);c.lineTo(x,top+s*1.2);c.lineTo(x-s,top);c.closePath();c.fill()});c.restore()};
   if(anim&&!RM.matches){const t0=performance.now();const f=now=>{const k=clamp((now-t0)/1100,0,1);draw(easeOut(k));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}else draw(1)}
 
-/* ---------------- SFX library ---------------- */
-const AUD_EXT=/\.(wav|mp3|aif|aiff|ogg|oga|m4a|flac|aac|opus|caf)$/i;
-const normName=s=>s.toLowerCase().replace(/\.[a-z0-9]{2,4}$/,"").replace(/[_\-.()\[\]]+/g," ").replace(/\s+/g," ");
-async function entriesFromDrop(dt){
-  const items=[...(dt.items||[])],ents=items.map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean),out=[];
-  if(!ents.length)return[...dt.files].map(f=>({file:f,path:f.name}));
-  async function walk(en,path){if(en.isFile){try{const f=await new Promise((r,j)=>en.file(r,j));out.push({file:f,path:path+f.name})}catch(e){}}
-    else if(en.isDirectory){const rd=en.createReader();let batch;do{batch=await new Promise((r,j)=>rd.readEntries(r,j));for(const e of batch)await walk(e,path+en.name+"/")}while(batch.length)}}
-  for(const e of ents)await walk(e,"");return out}
-function addLibrary(list){
-  const aud=list.filter(x=>AUD_EXT.test(x.file.name));
-  if(!aud.length){$("#sfxState").innerHTML="<span>No audio files in that selection. Pick WAV, MP3, AIFF or OGG files.</span>";return}
-  S.lib.forEach(f=>f.url&&URL.revokeObjectURL(f.url));stopSfx();
-  S.lib=aud.map((x,i)=>{const path=x.path||x.file.name,norm=normName(path);return{id:i,name:x.file.name,path,file:x.file,norm,cats:CATS.filter(c=>c[2].test(norm)).map(c=>c[0]),dur:null,url:null}});
-  const roots=[...new Set(aud.filter(x=>(x.path||"").includes("/")).map(x=>x.path.split("/")[0]))];
-  S.libRoot=roots.length===1?roots[0]:"";
-  $("#sfxState").innerHTML="Loaded <b>"+S.lib.length+" sounds"+(S.libRoot?" from “"+esc(S.libRoot)+"”":"")+"</b>";
-  renderLib();build(false);loadDurations()}
-function renderLib(){
-  const p=$("#libPanel");if(!S.lib.length){p.hidden=true;return}
-  const counts=CATS.map(c=>[c,S.lib.filter(f=>f.cats.includes(c[0]))]).filter(x=>x[1].length).sort((a,b)=>b[1].length-a[1].length);
-  const un=S.lib.filter(f=>!f.cats.length),mx=Math.max(1,...counts.map(x=>x[1].length));
-  let h='<div class="panel-head"><span class="tag live">SFX library</span><span class="fname">'+S.lib.length+' sounds'+(S.libRoot?' from “'+esc(S.libRoot)+'”':'')+'</span><span class="metas"><span class="meta">'+(S.lib.length-un.length)+' sorted</span><span class="meta">'+un.length+' unsorted</span></span><button class="btn ghost btn-sm" type="button" data-act="clearlib">Remove</button></div><div class="lgrid">';
-  counts.concat(un.length?[[["other","Unsorted"],un]]:[]).forEach(([c,fs])=>{h+='<details class="cat"><summary><b>'+c[1]+'</b><span class="c">'+fs.length+'</span><span class="bar"><i style="--w:'+(fs.length/mx).toFixed(3)+'"></i></span></summary><div class="files">'+fs.slice(0,60).map(fileRow).join("")+(fs.length>60?'<p class="muted">and '+(fs.length-60)+' more</p>':'')+'</div></details>'});
-  h+='</div>';if(un.length)h+='<p class="libnote">Unsorted files have names CutCompass can\'t read, like “'+esc(un[0].name)+'”. Rename them with a word like whoosh, click, riser, impact or ding to include them in matches.</p>';
-  p.innerHTML=h;p.hidden=false}
-function fileRow(f){return'<div class="m"><button class="play" type="button" data-sfx="'+f.id+'" aria-label="Play '+esc(f.name)+'">'+ICON.play+'</button><span class="nm" title="'+esc(f.path)+'">'+esc(f.name)+'</span><span class="du">'+(f.dur?f.dur.toFixed(1)+"s":"")+'</span></div>'}
-let durTimer=null;
-async function loadDurations(){
-  const lib=S.lib,queue=lib.slice();let alive=true;
-  const worker=async()=>{while(queue.length&&lib===S.lib){const f=queue.shift();try{if(!f.url)f.url=URL.createObjectURL(f.file);const a=new Audio();a.preload="metadata";a.src=f.url;await once(a,"loadedmetadata",5000);if(isFinite(a.duration))f.dur=a.duration;a.removeAttribute("src")}catch(e){}}};
-  await Promise.all([worker(),worker(),worker(),worker()]);
-  if(lib===S.lib&&alive){clearTimeout(durTimer);durTimer=setTimeout(()=>{renderLib();build(false)},120)}}
-function pick(cats,hint,cue){
-  const soft=/soft|subtle|light|gentle|quiet/i.test(cue),out=[];
-  for(const f of S.lib){let s=0,hit=false;cats.forEach((c,i)=>{if(f.cats.includes(c)){s+=i===0?6:3;hit=true}});if(!hit)continue;
-    if(hint&&hint.test(f.norm))s+=5;if(soft&&/soft|subtle|light|gentle|minimal|smooth/.test(f.norm))s+=2;if(f.cats.length===1)s+=1;
-    const want=DUR[cats[0]];if(f.dur&&want)s+=(f.dur>=want[0]&&f.dur<=want[1])?2:-2;out.push([s,f])}
-  out.sort((a,b)=>b[0]-a[0]||a[1].name.localeCompare(b[1].name));return out.slice(0,3).map(x=>x[1])}
-function stopSfx(){const P=S.playing;if(P){try{P.a&&P.a.pause()}catch(e){}try{P.src&&P.src.stop()}catch(e){}}S.playing=null;$$(".play.on").forEach(b=>{b.classList.remove("on");b.innerHTML=ICON.play})}
-async function playSfx(f,btn){
-  if(S.playing&&S.playing.f===f){stopSfx();return}stopSfx();
-  $$('.play[data-sfx="'+f.id+'"]').forEach(b=>{b.classList.add("on");b.innerHTML=ICON.stop});
-  const P=S.playing={f};
-  try{if(!f.url)f.url=URL.createObjectURL(f.file);const a=new Audio(f.url);P.a=a;a.onended=()=>{if(S.playing===P)stopSfx()};await a.play()}
-  catch(e){try{const ctx=S.ac||(S.ac=new(window.AudioContext||window.webkitAudioContext)());const buf=await ctx.decodeAudioData(await f.file.arrayBuffer());if(S.playing!==P)return;const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.onended=()=>{if(S.playing===P)stopSfx()};src.start();P.src=src;if(!f.dur)f.dur=buf.duration}catch(e2){if(S.playing===P)stopSfx();btn.title="This browser can't play this file"}}}
-
-/* ---------------- form ---------------- */
-const AUTO_FIELDS=["light","plat","len","pace","cBg","cDress"];
-function setAuto(id,val){const el=$("#"+id);el.value=val;const f=el.closest(".field");f.classList.add("is-auto");const t=f.querySelector(".auto");if(t)t.hidden=false;if(id[0]==="c")preview(id)}
-function clearAuto(id){const f=$("#"+id).closest(".field");f.classList.remove("is-auto");const t=f.querySelector(".auto");if(t)t.hidden=true}
-function isAuto(id){return $("#"+id).closest(".field").classList.contains("is-auto")}
-function applyToForm(A){
-  AUTO_FIELDS.forEach(id=>{if(isAuto(id)){clearAuto(id);if(id[0]==="c"){$("#"+id).value="";preview(id)}}});
-  if(A.w&&A.h){const r=A.w/A.h,cur=$("#plat").value;let p=null;if(r<.7)p=["reel","shorts","tiktok","story"].includes(cur)?cur:"reel";else if(r<.9)p="fb";else if(r<1.15)p="li";else if(r>1.5)p="yt";if(p)setAuto("plat",p)}
-  if(A.duration)setAuto("len",lenOf(A.duration));
-  if(A.fr){setAuto("light",A.fr.light);setAuto("cBg",hex(A.fr.bg));if(A.fr.dress)setAuto("cDress",hex(A.fr.dress))}
-  if(A.speech&&A.speech.conf!=="low")setAuto("pace",A.speech.pace)}
-function preview(id){const c=col($("#"+id).value),i=$("#pv-"+id);if(i)i.style.background=c?c.hex:""}
-function getEnv(){const k=$("#env").value;if(k!=="custom")return ENV[k];const x=$("#envtxt").value.trim(),l=x.toLowerCase();if(!x)return ENV.home;
-  const map=[[/cafe|market|bazar|street|rickshaw|mall|station|shop floor/,"cafe"],[/roof|chhad|park|river|beach|sea|field|garden|outdoor|hill|forest|lake/,"out"],[/office|showroom|shop|class|school|college|coaching|store/,"office"],[/studio/,"studio"],[/room|home|house|flat|bedroom|living|ghor|bari/,"home"]];
-  const hit=map.find(r=>r[0].test(l));if(hit){const b=ENV[hit[1]];return{amb:"Like '"+esc(x)+"': "+b.amb,db:b.db,fix:b.fix}}
-  return{amb:"Keep the real sounds of '"+esc(x)+"' light and natural, plus room tone",db:"-35",fix:"Reduce whatever noise is loudest (fan, wind, crowd) with EQ or denoise"}}
-
-/* ---------------- plan ---------------- */
-const MS='<span class="ms">Measured</span>';
-const li=a=>"<ul>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
-const swRow=a=>'<div class="sws">'+a.map(p=>'<span class="sw"><i style="background:'+p[0]+'"></i>'+p[0]+' · '+p[1]+'</span>').join("")+"</div>";
-function card(title,color,body,wide){return{title,color,body,wide}}
-function colorCard(main){
-  const rb=$("#cBrand").value.trim(),rg=$("#cBg").value.trim(),rd=$("#cDress").value.trim();if(!rb&&!rg&&!rd)return null;
-  const cb=col(rb),cg=col(rg),cd=col(rd),s=[],it=[];
-  if(cb)s.push([cb.hex,"Brand"]);if(cg)s.push([cg.hex,"Background"]);if(cd)s.push([cd.hex,"Outfit"]);
-  if(rb)it.push("<b>Brand color ("+esc(rb)+")</b>: use it as the accent for lower thirds, underlines and highlight bars. Don't let the grade shift its hue.");
-  if(rg){if(cg){const w=contrast([255,255,255],cg.rgb),k=contrast([17,24,39],cg.rgb),m=main?contrast(main.rgb,cg.rgb):w;
-      it.push((isAuto("cBg")?MS:"")+"<b>Background ("+esc(rg)+")</b>: white text measures "+w.toFixed(1)+":1 and dark text (#111827) "+k.toFixed(1)+":1 against it. "+(w>=4.5?"White captions read well.":k>=4.5?"Use dark text, or put white captions on a dark box.":"Neither reads well on its own, so always put captions on a solid box."));
-      if(main&&Math.abs(m-w)>.05)it.push("Your main caption color "+main.hex+" measures "+m.toFixed(1)+":1 on this background"+(m<4.5?", below the 4.5:1 minimum. Add a box or outline.":"."))}
-    else it.push("<b>Background ("+esc(rg)+")</b>: keep at least 4.5:1 contrast with the text: dark text on light backgrounds, white text on dark ones.")}
-  if(rd){it.push((isAuto("cDress")?MS:"")+"<b>Outfit ("+esc(rd)+")</b>: don't make captions the same color as the outfit, or they'll blend in. In the grade, keep the outfit's real color with an HSL qualifier and don't over-saturate it.");
-    if(cd&&cg){const dd=dist(cd.rgb,cg.rgb);if(dd<90)it.push("Outfit and background are very close in color ("+Math.round(dd)+" apart on a 0-441 scale). Separate them: darken the background a little, add a soft vignette, or add rim light.")}}
-  return card("Matching your colors","--clip",(s.length?swRow(s):"")+li(it))}
-function sfxBody(t){
-  const lib=S.lib.length;let h="";
-  t.f.forEach(([txt,cats,hint])=>{h+='<div class="cue"><div class="cue-t">'+txt+'</div>';
-    if(!cats.length){h+='<p class="muted">No sound effect for this one.</p></div>';return}
-    const chips='<div class="chips">'+cats.map(c=>'<span class="chip">'+CATL[c]+'</span>').join("")+'</div>';
-    if(!lib){h+=chips+'</div>';return}
-    const ms=pick(cats,hint,txt);h+=ms.length?'<div class="matches">'+ms.map(fileRow).join("")+'</div>':'<p class="muted">Nothing in your library is named like this. Look for:</p>'+chips;h+='</div>'});
-  h+='<div class="note">'+(lib?"Picked from your "+lib+" sounds by file and folder name. Keep SFX at -18 to -22 dB, at most one every 5-8 seconds.":"Add your SFX library in Stage 01 to get exact files for each cue. Too many SFX make a talking head feel cheap, so keep them few and purposeful.")+'</div>';
-  return h}
-function build(anim){
-  const v=id=>$("#"+id).value,mk=v("mood"),m=MOOD[mk],tk=v("theme"),t=THEME[tk],e=getEnv(),p=PLAT[v("plat")];
-  const A=S.a,sp=A&&A.speech,fr=A&&A.fr,rel=tk==="rel",mp=v("mus");
-  const music=mp==="none"?"No music: lean on voice, ambience and light foley. It keeps focus on the speaker.":mp==="vocal"?"Vocal-only nasheed or a cappella bed, around -26 dB under the voice":mp==="inst"?m.music+" (instrumental only, no lyrics), "+m.mdb+" dB under the voice":rel?"Better with no music. If you add some: vocal-only nasheed or a nature ambience pad, around -28 dB":m.music+", "+m.mdb+" dB under the voice";
-  const cards=[];
-  const cuts=[];
-  if(sp&&sp.pauses){cuts.push(MS+sp.pauses.length+" pauses of 0.5s or longer, "+sp.pauseTime.toFixed(1)+"s in total. Trim each to about 0.3s to save "+fmtDur(sp.trim)+": the talk goes from "+fmtDur(sp.active)+" to about "+fmtDur(sp.active-sp.trim)+".");
-    const lg=sp.pauses.filter(x=>x.d>=2).length;if(lg)cuts.push(MS+lg+" pause"+(lg>1?"s":"")+" over 2s. These are often restarts or lost thoughts, so check for a retake before cutting.");
-    if(sp.head>.8||sp.tail>.8)cuts.push(MS+"Trim "+sp.head.toFixed(1)+"s of dead air at the start and "+sp.tail.toFixed(1)+"s at the end.")}
-  cuts.push("Main cut: <b>jump cut</b> to remove ums, pauses and bad takes. Average shot length: "+m.asl,"<b>Punch-in</b> (100% → 115%) every 2-3 cuts for emphasis","<b>J-cut / L-cut</b>: let the voice run before or after the B-roll so it feels smooth","<b>B-roll cutaway</b> every 8-12 sec: "+t.b,"Transition: "+m.tr);
-  cuts.push((sp&&sp.conf!=="low"&&isAuto("pace")?MS+"Speaking rate "+sp.rate.toFixed(1)+" syllables/sec. ":"")+PACE[v("pace")]);
-  cards.push(card("Cuts and transitions","--cut",li(cuts)));
-  if(sp&&sp.pauses.length){const rows=sp.pauses.map((x,i)=>'<tr class="'+(A.sample?"":"go")+'" data-t="'+x.a.toFixed(2)+'"><td>'+pad(i+1)+'</td><td>'+fmtT(x.a)+'</td><td>'+fmtT(x.b)+'</td><td class="'+(x.d>=2?"long":"")+'">'+x.d.toFixed(1)+'s</td><td>'+(x.d>=2?"Check for retake":"Trim to 0.3s")+'</td></tr>').join("");
-    cards.push(card("Cut list","--cut",'<div class="plan-bar" style="margin-bottom:12px"><button class="btn ghost btn-sm" type="button" data-act="copycuts">Copy cut list</button><span class="msg" id="cutMsg" role="status"></span>'+(A.sample?'':'<span class="muted" style="margin:0">Click a row to jump there in the player.</span>')+'</div><div class="cuts" id="cutTable"><table><thead><tr><th>#</th><th>From</th><th>To</th><th>Length</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div>'))}
-  cards.push(card("Foley and SFX","--sfx",sfxBody(t),S.lib.length>0));
-  const amb=[e.amb+" ("+e.db+" dB)","Audio fix: "+e.fix,"Keep room tone continuous across cuts and fill any silent gaps"];
-  if(sp){const nf=sp.noise,lv=nf>-42?"high":nf>-55?"moderate":"low";amb.unshift(MS+"Background noise floor "+Math.round(nf)+" dBFS ("+lv+"). "+(lv==="high"?"Run noise reduction first, then gate gently between phrases.":lv==="moderate"?"A light noise-reduction pass will clean it; heavy settings make the voice sound watery.":"The recording is clean, so keep processing light."))}
-  cards.push(card("Ambient sound","--aud",li(amb)));
-  const mix=["Voice: peak around -6 dB, loudness -14 LUFS","Music: "+(mp==="none"?"none":rel||mp==="vocal"?"-26 to -28 dB (if used)":m.mdb+" dB"),"Ambient: "+e.db+" dB","SFX / foley: -18 to -22 dB, at most one per 5-8 sec","If music fights the voice, add ducking"];
-  if(sp){const g=Math.round(-14-sp.speech),pkdb=20*Math.log10(Math.max(A.audio.peak,1e-6));mix.unshift(MS+"Voice sits around "+Math.round(sp.speech)+" dBFS while speaking. "+(Math.abs(g)<2?"That's already close to -14 LUFS.":"Add about "+(g>0?"+":"")+g+" dB of gain to land near -14 LUFS, then confirm on your loudness meter.")+(g>0&&pkdb+g>-1?" Peaks would pass 0 dB at that gain, so put a limiter at -1 dB on the voice track.":""));
-    if(A.audio.clipWins>3)mix.unshift(MS+"The voice clips in about "+A.audio.clipWins+" places. Run a de-clip tool before adding gain.")}
-  cards.push(card("Music and mix","--mus",li([music,"Keep music low at the hook, raise it slightly on main points, fade out on the CTA","Use copyright-free sources"].concat(mix))));
-  const rb=col($("#cBrand").value),pal=t.pal.slice();if(rb)pal[1]=[rb.hex,"Brand color (accent)"];
-  cards.push(card("Text and captions","--clip",swRow(pal)+li(["Bold, readable sans-serif font, maximum 2 fonts","Captions: 1-2 lines, "+p.cap,"Caption language: "+CAP[v("cap")],"Highlight color for keywords, main color for everything else"])));
-  const cc=colorCard(col(pal[0][0]));if(cc)cards.push(cc);
-  const gr=["Lighting fix: "+LIGHT[v("light")]];
-  if(fr){const ev=clamp(Math.log2(.45/Math.max(fr.lum,.02)),-1.5,1.5);gr.unshift(MS+"Average brightness "+Math.round(fr.lum*100)+"%, contrast "+(fr.std<.13?"flat":fr.std>.26?"high":"normal")+(fr.clip>.02?", "+Math.round(fr.clip*100)+"% of the frame clipped":"")+".");
-    if(Math.abs(ev)>=.25)gr.push(MS+"Exposure: "+(ev>0?"raise":"lower")+" by about "+Math.abs(ev).toFixed(1)+" EV before grading.");
-    if(fr.warm>.12)gr.push(MS+"Footage runs warm. Cool the white balance by about 300-600K, then add warmth back only if the mood needs it.");else if(fr.warm<-.05)gr.push(MS+"Footage runs cool. Warm it by about 300K so skin doesn't look grey.");
-    if(fr.cast>.1)gr.push(MS+"Left and right of the frame carry different color casts. Balance on the face, then fix the background with a soft mask.");
-    if(fr.std<.13)gr.push(MS+"The image is flat. Add contrast with an S-curve before the creative look.");
-    if(fr.clip>.03)gr.push("Pull highlights down with a soft roll-off; fully clipped areas can't be recovered.")}
-  gr.push("Correct first (exposure, white balance), then apply the creative grade","Keep the same look on every clip, with skin tone on the skin-tone line");
-  cards.push(card("Color grade","--g2",li(m.grade)+'<div class="sws"><span class="sw"><i style="background:'+m.hue+'"></i>'+m.hue+' · Mood tone</span></div>'+li(gr)));
-  const ex=[p.hook,LEN[v("len")],"Export: "+p.ex];
-  if(A&&A.duration)ex.unshift(MS+"Raw length "+fmtDur(A.duration)+(A.w?", "+A.w+"×"+A.h+" ("+ratioLabel(A.w,A.h)+")":"")+(sp&&sp.trim?", about "+fmtDur(A.duration-sp.trim-sp.head-sp.tail)+" after cutting pauses and dead air":"")+".");
-  cards.push(card("Structure and export","--ink-3",li(ex)));
-  const el=$("#planCards");
-  el.innerHTML=cards.map((c,i)=>'<article class="card'+(c.wide?" wide":"")+'" style="--i:'+i+'"><h3><span class="n">'+pad(i+1)+'</span>'+c.title+'<span class="td" style="background:var('+c.color+')"></span></h3>'+c.body+'</article>').join("");
-  if(anim&&!RM.matches){el.classList.remove("anim");void el.offsetWidth;el.classList.add("anim")}else el.classList.remove("anim");
-  if(S.playing)$$('.play[data-sfx="'+S.playing.f.id+'"]').forEach(b=>{b.classList.add("on");b.innerHTML=ICON.stop})}
-
-function planText(){return $$("#planCards .card").map(c=>{const tl=c.querySelector("h3").textContent.replace(/^\d+/,"").trim().toUpperCase();
-  if(c.querySelector("#cutTable"))return tl+"\n"+cutText();
-  const lines=[...c.querySelectorAll("li,.cue")].map(x=>{if(x.classList.contains("cue")){const nm=[...x.querySelectorAll(".nm")].map(n=>n.textContent);return"- "+x.querySelector(".cue-t").textContent+(nm.length?" → "+nm.join(", "):"")}return"- "+x.textContent});
-  const sw=[...c.querySelectorAll(".sw")].map(s=>s.textContent);return tl+"\n"+(sw.length?"Colors: "+sw.join(" | ")+"\n":"")+lines.join("\n")}).join("\n\n")}
-function cutText(){const sp=S.a&&S.a.speech;if(!sp)return"";return sp.pauses.map((x,i)=>pad(i+1)+"  "+fmtTC(x.a)+" → "+fmtTC(x.b)+"  "+x.d.toFixed(1)+"s  "+(x.d>=2?"check for retake":"trim to 0.3s")).join("\n")}
+function planText(){const A=S.a,P=S.plan,pl=PLAT[platOf(A)],o=[];
+  o.push("CUTCOMPASS EDIT PLAN"+(A.sample?" (example)":"")+" · "+A.name+(A.duration?" · "+fmtDur(A.duration):"")+(A.w?" · "+A.w+"x"+A.h:""));
+  o.push("Video type: "+CATL[P.category]+" · "+(P.setting==="outdoor"?"Outdoor":"Indoor")+" ("+LOCL[P.location]+") · "+LIGHTL[P.lighting]+" · "+MOODL[P.mood]);
+  if(P.seen)o.push(P.seen);
+  const sp=A.speech;
+  o.push("","1. CUTS",P.cuts.why,...P.cuts.tips.map(x=>"- "+x));if(sp){o.push("- "+sp.pauses.length+" pauses to cut, saves "+fmtDur(sp.trim));o.push("Cut list:");sp.pauses.forEach((x,n)=>o.push("  "+pad(n+1)+"  "+fmtTC(x.a)+" → "+fmtTC(x.b)+"  "+x.d.toFixed(1)+"s  "+(x.d>=2?"check for a retake":"trim to 0.3s")))}
+  o.push("","2. COLORS",P.colors.why,...P.colors.palette.map(p=>"- "+p.hex+"  "+p.use),"Grade:",...P.colors.grade.map(x=>"- "+x),...measuredColor(A).map(x=>"- "+x));
+  const lv=P.sound.levels;o.push("","3. SOUND ("+(P.setting==="outdoor"?"outdoor":"indoor")+")",P.sound.why,"Levels: voice "+fmtDb(lv.voice)+" peak, music "+fmtDb(lv.music)+", ambience "+fmtDb(lv.ambience)+", SFX "+fmtDb(lv.sfx),P.sound.ambience,...P.sound.tips.map(x=>"- "+x),...measuredSound(A).map(x=>"- "+x));
+  o.push("","4. SFX",P.sfx.why,...(P.sfx.cues.length?P.sfx.cues.map(q=>"- "+q.cue+(q.where?" · "+q.where:"")+" · "+fmtDb(q.level)):["- None"]));
+  o.push("","5. MUSIC",P.music.why,"- "+P.music.style+" · "+P.music.bpm+" · "+fmtDb(P.music.level)+" under the voice",...P.music.tips.map(x=>"- "+x));
+  o.push("","6. EXPORT","- "+pl.n+": "+pl.ex,"- "+pl.cap,"- "+pl.hook,"- "+LEN[lenOf(A.duration||60)]);
+  return o.join("\n").replace(/−/g,"-")}
+function cutText(){const sp=S.a&&S.a.speech;return sp?sp.pauses.map((x,i)=>pad(i+1)+"  "+fmtTC(x.a)+" → "+fmtTC(x.b)+"  "+x.d.toFixed(1)+"s  "+(x.d>=2?"check for a retake":"trim to 0.3s")).join("\n"):""}
 async function copyOut(txt,msgEl,selEl){try{await navigator.clipboard.writeText(txt);msgEl.textContent="Copied"}catch(e){if(selEl){const r=document.createRange();r.selectNodeContents(selEl);const s=getSelection();s.removeAllRanges();s.addRange(r)}msgEl.textContent="Selected. Press Ctrl+C (⌘C on Mac) to copy."}setTimeout(()=>{msgEl.textContent=""},3200)}
+async function updatePlan(btn){
+  const hints={category:$("#oCat").value,location:$("#oLoc").value,mood:$("#oMood").value},A=S.a;
+  if(A.sample){S.plan=rulePlan(A,guessKeys(A,hints));S.plan.needsType=false;Object.assign(S.plan,{source:"rules"});renderResult(true);return}
+  btn.disabled=true;const msg=$("#updMsg");msg.textContent=S.aiOK?"Claude is rewriting the plan…":"Updating…";
+  const my=++S.job;$("#progList").innerHTML='<li data-s="think"><i></i>Writing your plan</li>';
+  const P=await planFor(A,hints,my);if(my!==S.job||!P)return;P.needsType=false;S.plan=P;renderResult(true)}
 
 /* ---------------- wiring ---------------- */
-function wireDrop(zone,onFiles,isLib){
-  zone.addEventListener("dragenter",e=>{e.preventDefault();zone.classList.add("over")});
-  zone.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="copy";zone.classList.add("over")});
-  zone.addEventListener("dragleave",e=>{if(!zone.contains(e.relatedTarget))zone.classList.remove("over")});
-  zone.addEventListener("drop",async e=>{e.preventDefault();zone.classList.remove("over");if(isLib){$("#sfxState").innerHTML="Reading folder…";onFiles(await entriesFromDrop(e.dataTransfer))}else if(e.dataTransfer.files[0])onFiles(e.dataTransfer.files[0])})}
 function init(){
-  $("#ticker").innerHTML=(()=>{const t=[...$("#theme").options].map(o=>"<span>"+esc(o.textContent)+"</span>").join("");return t+t})();
-  S.ex=makeSample();S.a=S.ex;
+  $("#ticker").innerHTML=(()=>{const t=CATS.map(c=>"<span>"+esc(c[1])+"</span>").join("");return t+t})();
+  S.ex=makeSample();S.a=S.ex;S.plan=mergePlan(S.ex,sanitizeAI(EXAMPLE_AI),null);
   heroSetup();if(!RM.matches)requestAnimationFrame(heroFrame);
-  ills();renderAnalysis(false);applyToForm(S.a);build(false);
-  const fF=$("#fFoot"),dF=$("#dropFoot"),dS=$("#dropSfx");
-  dF.addEventListener("click",()=>fF.click());dF.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fF.click()}});
-  fF.addEventListener("change",()=>{if(fF.files[0])handleFootage(fF.files[0]);fF.value=""});
-  wireDrop(dF,handleFootage,false);
-  dS.addEventListener("click",e=>{if(!e.target.closest("button"))$("#fDir").click()});
-  dS.addEventListener("keydown",e=>{if(e.target===dS&&(e.key==="Enter"||e.key===" ")){e.preventDefault();$("#fDir").click()}});
-  $("#bDir").addEventListener("click",()=>$("#fDir").click());$("#bFiles").addEventListener("click",()=>$("#fSfx").click());
-  ["#fDir","#fSfx"].forEach(id=>$(id).addEventListener("change",e=>{const fs=[...e.target.files].map(f=>({file:f,path:f.webkitRelativePath||f.name}));if(fs.length)addLibrary(fs);e.target.value=""}));
-  wireDrop(dS,addLibrary,true);
-  $("#fAud").addEventListener("change",e=>{if(e.target.files[0])addAudioOnly(e.target.files[0]);e.target.value=""});
+  ills();renderResult(false);aiNote();
+  const fF=$("#fFoot"),dz=$("#drop");
+  dz.addEventListener("click",()=>fF.click());dz.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fF.click()}});
+  fF.addEventListener("change",()=>{if(fF.files[0])pickFile(fF.files[0]);fF.value=""});
+  dz.addEventListener("dragenter",e=>{e.preventDefault();dz.classList.add("over")});
+  dz.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="copy";dz.classList.add("over")});
+  dz.addEventListener("dragleave",e=>{if(!dz.contains(e.relatedTarget))dz.classList.remove("over")});
+  dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("over");if(e.dataTransfer.files[0])pickFile(e.dataTransfer.files[0])});
   window.addEventListener("dragover",e=>e.preventDefault());window.addEventListener("drop",e=>e.preventDefault());
-  $$(".form select,.form input").forEach(el=>{const ev=el.tagName==="SELECT"?"change":"input";el.addEventListener(ev,()=>{if(isAuto(el.id))clearAuto(el.id);if(el.id[0]==="c")preview(el.id);if(el.id==="env")$("#envtxt").hidden=el.value!=="custom";clearTimeout(S.bt);S.bt=setTimeout(()=>build(false),el.tagName==="SELECT"?0:250)})});
-  $("#copyPlan").addEventListener("click",()=>copyOut(planText(),$("#planMsg"),$("#planCards")));
+  $("#go").addEventListener("click",analyze);
+  $("#stop").addEventListener("click",()=>{S.ctl&&S.ctl.abort()});
   document.addEventListener("click",e=>{
-    const pb=e.target.closest(".play[data-sfx]");if(pb){const f=S.lib[+pb.dataset.sfx];if(f)playSfx(f,pb);return}
     const act=e.target.closest("[data-act]");
     if(act){const a=act.dataset.act;
-      if(a==="example"){S.job++;if(S.url){URL.revokeObjectURL(S.url);S.url=null}$("#footState").innerHTML="";S.a=S.ex;renderAnalysis(false);applyToForm(S.a);build(false)}
-      else if(a==="addaud")$("#fAud").click();
-      else if(a==="clearlib"){stopSfx();S.lib.forEach(f=>f.url&&URL.revokeObjectURL(f.url));S.lib=[];$("#sfxState").innerHTML="";renderLib();build(false)}
+      if(a==="another"){S.job++;S.ctl&&S.ctl.abort();setPane("paneDrop");setStep(1);$("#analyze").scrollIntoView({behavior:RM.matches?"auto":"smooth"});setTimeout(()=>fF.click(),RM.matches?0:350)}
+      else if(a==="copy")copyOut(planText(),$("#copyMsg"),$("#secs"));
       else if(a==="copycuts")copyOut(cutText(),$("#cutMsg"),$("#cutTable"));
+      else if(a==="update")updatePlan(act);
       return}
-    const tr=e.target.closest("tr.go[data-t]");if(tr){const pl=$("#player");if(pl){pl.currentTime=Math.max(0,+tr.dataset.t-.6);const pr=pl.play();if(pr&&pr.catch)pr.catch(()=>{});pl.scrollIntoView({behavior:RM.matches?"auto":"smooth",block:"center"})}}
-  });
-  const an=$("#analysis");
-  an.addEventListener("mousemove",e=>{const cv=e.target.closest("#pmap");const old=$("#pmTip");if(!cv||!pmCols){old&&old.remove();return}
+    const tr=e.target.closest("tr.go[data-t]");if(tr){const pl=$("#player");if(pl){pl.currentTime=Math.max(0,+tr.dataset.t-.6);const pr=pl.play();if(pr&&pr.catch)pr.catch(()=>{});pl.scrollIntoView({behavior:RM.matches?"auto":"smooth",block:"center"})}}});
+  const rs=$("#result");
+  rs.addEventListener("mousemove",e=>{const cv=e.target.closest("#pmap"),old=$("#pmTip");if(!cv||!pmCols){old&&old.remove();return}
     const r=cv.getBoundingClientRect(),x=e.clientX-r.left,t=x/r.width*pmCols.dur,p=S.a.speech.pauses.find(q=>t>=q.a&&t<=q.b);
     const tip=old||Object.assign(document.createElement("div"),{id:"pmTip",className:"tip"});tip.textContent=fmtT(t)+(p?" · pause "+p.d.toFixed(1)+"s":"");tip.style.left=clamp(x,40,r.width-40)+"px";if(!old)$("#pmWrap").appendChild(tip)});
-  an.addEventListener("mouseleave",()=>{const t=$("#pmTip");t&&t.remove()},true);
-  an.addEventListener("click",e=>{const cv=e.target.closest("#pmap");if(!cv||!pmCols)return;const pl=$("#player");if(!pl)return;const r=cv.getBoundingClientRect();pl.currentTime=clamp((e.clientX-r.left)/r.width*pmCols.dur,0,pmCols.dur);const pr=pl.play();if(pr&&pr.catch)pr.catch(()=>{})});
+  rs.addEventListener("mouseleave",()=>{const t=$("#pmTip");t&&t.remove()},true);
+  rs.addEventListener("click",e=>{const cv=e.target.closest("#pmap");if(!cv||!pmCols)return;const pl=$("#player");if(!pl)return;const r=cv.getBoundingClientRect();pl.currentTime=clamp((e.clientX-r.left)/r.width*pmCols.dur,0,pmCols.dur);const pr=pl.play();if(pr&&pr.catch)pr.catch(()=>{})});
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>drawPauseMap(false),150)});
   const redraw=()=>{drawHeroLanes();drawPauseMap(false)};matchMedia("(prefers-color-scheme: dark)").addEventListener("change",redraw);new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
-  if(!RM.matches&&"IntersectionObserver" in window){const vh=innerHeight;const rv=$$(".rv").filter(el=>el.getBoundingClientRect().top>vh);rv.forEach((el,i)=>{el.classList.add("pre");el.style.transitionDelay=((+el.style.getPropertyValue("--d")||0)*80)+"ms"});
+  if(!RM.matches&&"IntersectionObserver" in window){const vh=innerHeight,rv=$$(".rv").filter(el=>el.getBoundingClientRect().top>vh);rv.forEach((el,i)=>{el.classList.add("pre");el.style.transitionDelay=(i%3*80)+"ms"});
     const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.remove("pre");io.unobserve(en.target)}}),{rootMargin:"0px 0px -6% 0px"});rv.forEach(el=>io.observe(el))}
 }
 init();
